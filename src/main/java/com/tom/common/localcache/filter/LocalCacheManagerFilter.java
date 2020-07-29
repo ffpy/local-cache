@@ -1,6 +1,6 @@
-package com.example.localcache.filter;
+package com.tom.common.localcache.filter;
 
-import com.example.localcache.config.LocalCacheManagerConfig;
+import com.tom.common.localcache.config.LocalCacheManagerConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.Getter;
@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +37,9 @@ public class LocalCacheManagerFilter implements Filter {
     public static final String CONTENT_TYPE_APPLICATION_JSON = "application/json; charset=utf-8";
 
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private LocalCacheManagerConfig localCacheManagerConfig;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -91,7 +95,7 @@ public class LocalCacheManagerFilter implements Filter {
      * @throws IOException IO错误
      */
     private void processAction(HttpServletRequest request, HttpServletResponse response, String groupName, String actionName) throws IOException {
-        Cache<Object, Object> cache = LocalCacheManagerConfig.cacheMap.get(groupName);
+        Cache<Object, Object> cache = localCacheManagerConfig.getCache(groupName);
         if (cache == null) {
             write(response, HttpStatus.BAD_REQUEST, "缓存组不存在: " + groupName);
             return;

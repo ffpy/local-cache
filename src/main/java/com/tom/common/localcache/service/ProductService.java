@@ -1,4 +1,4 @@
-package com.example.localcache.service;
+package com.tom.common.localcache.service;
 
 public interface ProductService {
 

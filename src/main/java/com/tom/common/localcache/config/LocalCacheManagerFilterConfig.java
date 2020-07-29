@@ -1,6 +1,6 @@
-package com.example.localcache.config;
+package com.tom.common.localcache.config;
 
-import com.example.localcache.filter.LocalCacheManagerFilter;
+import com.tom.common.localcache.filter.LocalCacheManagerFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;

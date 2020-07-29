@@ -1,4 +1,4 @@
-package com.example.localcache.config;
+package com.tom.common.localcache.config;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 @Setter
 @ToString
 @RequiredArgsConstructor
-class ConfigTimeValue {
+public class ConfigTimeValue {
 
     /** 时间字符串解析表达式 */
     private static final Pattern PATTERN = Pattern.compile("(\\d+)(\\w*)");

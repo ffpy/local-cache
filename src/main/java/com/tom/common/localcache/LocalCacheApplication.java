@@ -1,7 +1,7 @@
-package com.example.localcache;
+package com.tom.common.localcache;
 
-import com.example.localcache.service.ProductService;
-import com.example.localcache.service.UserService;
+import com.tom.common.localcache.service.ProductService;
+import com.tom.common.localcache.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -22,12 +22,12 @@ public class LocalCacheApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        userService.loadUser("user1");
+        System.out.println(userService.loadUser("user1"));
         userService.loadUser("user1");
         userService.loadUser("user2");
         userService.loadUser("user2");
 
-        productService.getProduct(1L);
+        System.out.println(productService.getProduct(1L));
         productService.getProduct(1L);
         productService.getProduct(2L);
         productService.getProduct(2L);

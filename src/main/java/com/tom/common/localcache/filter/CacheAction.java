@@ -1,6 +1,6 @@
-package com.example.localcache.filter;
+package com.tom.common.localcache.filter;
 
-import com.example.localcache.vo.LocalCacheStats;
+import com.tom.common.localcache.vo.LocalCacheStats;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

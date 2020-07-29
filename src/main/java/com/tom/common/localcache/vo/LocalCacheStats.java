@@ -1,6 +1,6 @@
-package com.example.localcache.vo;
+package com.tom.common.localcache.vo;
 
-import com.example.localcache.util.NumberUtils;
+import com.tom.common.localcache.util.NumberUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import lombok.Getter;

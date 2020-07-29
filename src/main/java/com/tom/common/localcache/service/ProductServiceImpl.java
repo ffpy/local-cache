@@ -1,4 +1,4 @@
-package com.example.localcache.service;
+package com.tom.common.localcache.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;

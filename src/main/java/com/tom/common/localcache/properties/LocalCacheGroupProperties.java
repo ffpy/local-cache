@@ -1,0 +1,49 @@
+package com.tom.common.localcache.properties;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+/**
+ * 缓存分组属性配置
+ * <p>
+ * 注意，如果修改字段，要同步修改{@link LocalCacheGlobalGroupProperties}中的字段
+ *
+ * @author 温龙盛
+ * @date 2020/7/29 9:28
+ */
+@Getter
+@Setter
+@ToString
+public class LocalCacheGroupProperties {
+
+    /** 是否启用缓存，设为false则每次都会请求数据，不会存在缓存中 */
+    private boolean enable = true;
+
+    /** 开启缓存值软引用 */
+    private Boolean softValues;
+
+    /** 开启缓存键弱引用 */
+    private Boolean weakKeys;
+
+    /** 开启缓存值弱引用 */
+    private Boolean weakValues;
+
+    /** 写入过期时间 */
+    private String expireAfterWrite;
+
+    /** 访问过期时间 */
+    private String expireAfterAccess;
+
+    /** 写入刷新时间，如果配置了此项，则必须也要配置classLoader属性 */
+    private String refreshAfterWrite;
+
+    /** 缓存容量初始值 */
+    private Integer initialCapacity;
+
+    /** 缓存容量最大值 */
+    private Integer maximumSize;
+
+    /** {@link com.github.benmanes.caffeine.cache.CacheLoader}的Bean名称 */
+    private String cacheLoader;
+}
