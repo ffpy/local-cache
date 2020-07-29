@@ -6,6 +6,8 @@ import com.tom.common.localcache.cache.CacheFactory;
 import com.tom.common.localcache.cache.EmptyCache;
 import com.tom.common.localcache.cache.EmptyLoadingCache;
 import com.tom.common.localcache.constant.ConfigPrefix;
+import com.tom.common.localcache.manager.LocalCacheManager;
+import com.tom.common.localcache.manager.LocalCacheManagerImpl;
 import com.tom.common.localcache.properties.LocalCacheGlobalGroupProperties;
 import com.tom.common.localcache.properties.LocalCacheGroupProperties;
 import com.tom.common.localcache.properties.LocalCacheManagerProperties;

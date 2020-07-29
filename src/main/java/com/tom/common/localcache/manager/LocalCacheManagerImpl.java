@@ -1,4 +1,4 @@
-package com.tom.common.localcache.config;
+package com.tom.common.localcache.manager;
 
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.springframework.beans.factory.InitializingBean;
