@@ -1,7 +1,6 @@
 package com.tom.common.localcache.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.benmanes.caffeine.cache.Policy;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import org.checkerframework.checker.index.qual.NonNegative;
@@ -13,7 +12,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 /**
- * 不存入缓存的缓存，主要是用于测试
+ * 不存入缓存的缓存实现，主要是用于测试
  *
  * @author 温龙盛
  * @date 2020/7/29 16:30

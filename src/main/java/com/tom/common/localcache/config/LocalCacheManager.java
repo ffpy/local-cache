@@ -4,6 +4,8 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.springframework.cache.CacheManager;
 
 /**
+ * 本地缓存管理器
+ *
  * @author 温龙盛
  * @date 2020/7/29 17:17
  */

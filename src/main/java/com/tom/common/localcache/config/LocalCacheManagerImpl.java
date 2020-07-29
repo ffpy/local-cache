@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 /**
- * 本地缓存管理器
+ * 本地缓存管理器实现
  *
  * @author 温龙盛
  * @date 2020/7/29 15:00

@@ -1,14 +1,14 @@
 package com.tom.common.localcache.config;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.tom.common.localcache.cache.CacheFactory;
 import com.tom.common.localcache.cache.EmptyCache;
 import com.tom.common.localcache.cache.EmptyLoadingCache;
-import com.tom.common.localcache.constant.ConfigConstant;
+import com.tom.common.localcache.constant.ConfigPrefix;
 import com.tom.common.localcache.properties.LocalCacheGlobalGroupProperties;
 import com.tom.common.localcache.properties.LocalCacheGroupProperties;
+import com.tom.common.localcache.properties.LocalCacheManagerProperties;
 import com.tom.common.localcache.properties.LocalCacheProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
@@ -40,14 +40,19 @@ import java.util.Map;
 @Slf4j
 @Configuration
 @EnableCaching
-@EnableConfigurationProperties({LocalCacheProperties.class, LocalCacheGlobalGroupProperties.class})
+@EnableConfigurationProperties({
+        LocalCacheProperties.class,
+        LocalCacheGlobalGroupProperties.class,
+        LocalCacheManagerProperties.class,
+})
 public class LocalCacheManagerConfig {
 
-    private static final ConfigurationPropertyName CACHE_GROUP = ConfigurationPropertyName.of(ConfigConstant.GROUP_PROPERTIES_PREFIX);
+    private static final ConfigurationPropertyName CACHE_GROUP = ConfigurationPropertyName.of(ConfigPrefix.GROUP);
 
     private static final Bindable<Map<String, String>> STRING_MAP = Bindable.mapOf(String.class,
             String.class);
 
+    /** 缓存分组名到Caffeine缓存的映射 */
     public final Map<String, com.github.benmanes.caffeine.cache.Cache<Object, Object>> caffeineCacheMap = new HashMap<>();
 
     @Autowired
@@ -55,6 +60,23 @@ public class LocalCacheManagerConfig {
 
     @Autowired
     private LocalCacheGlobalGroupProperties globalGroupProperties;
+
+    @Bean
+    public LocalCacheManager cacheManager(ConfigurableEnvironment environment, ApplicationContext applicationContext) {
+        Map<String, LocalCacheGroupProperties> groups = getGroups(environment);
+
+        LocalCacheManagerImpl cacheManager = new LocalCacheManagerImpl();
+        List<org.springframework.cache.Cache> caches = new ArrayList<>();
+        for (Map.Entry<String, LocalCacheGroupProperties> entry : groups.entrySet()) {
+            String groupName = entry.getKey();
+            Cache<Object, Object> cache = createCache(applicationContext, entry.getValue());
+            caffeineCacheMap.put(groupName, cache);
+            caches.add(new CaffeineCache(groupName, cache));
+        }
+
+        cacheManager.setCaches(caches);
+        return cacheManager;
+    }
 
     /**
      * 获取指定名称的缓存
@@ -66,40 +88,23 @@ public class LocalCacheManagerConfig {
         return caffeineCacheMap.get(name);
     }
 
-    // TODO 测试
-    @Bean
-    public CacheLoader<String, String> userCacheLoader() {
-        return key -> {
-            log.info("get from userCacheLoader: " + key);
-            return "from cacheLoader: " + key;
-        };
-    }
-
-    @Bean
-    public LocalCacheManager cacheManager(ConfigurableEnvironment environment, ApplicationContext applicationContext) {
-        Map<String, LocalCacheGroupProperties> groups = getGroups(environment);
-
-        LocalCacheManagerImpl cacheManager = new LocalCacheManagerImpl();
-        List<org.springframework.cache.Cache> caches = new ArrayList<>();
-        for (Map.Entry<String, LocalCacheGroupProperties> entry : groups.entrySet()) {
-            String groupName = entry.getKey();
-            LocalCacheGroupProperties properties = entry.getValue();
-
-            Cache<Object, Object> cache = CacheFactory.createCaffeineCache(properties, applicationContext);
-            if (isGroupDisable(properties)) {
-                if (cache instanceof LoadingCache) {
-                    cache = new EmptyLoadingCache((LoadingCache<Object, Object>) cache);
-                } else {
-                    cache = new EmptyCache(cache);
-                }
+    /**
+     * 创建缓存
+     *
+     * @param applicationContext ApplicationContext
+     * @param properties         缓存配置
+     * @return 缓存
+     */
+    private Cache<Object, Object> createCache(ApplicationContext applicationContext, LocalCacheGroupProperties properties) {
+        Cache<Object, Object> cache = CacheFactory.createCaffeineCache(properties, applicationContext);
+        if (isGroupDisable(properties)) {
+            if (cache instanceof LoadingCache) {
+                cache = new EmptyLoadingCache((LoadingCache<Object, Object>) cache);
+            } else {
+                cache = new EmptyCache(cache);
             }
-
-            caffeineCacheMap.put(groupName, cache);
-            caches.add(new CaffeineCache(groupName, cache));
         }
-
-        cacheManager.setCaches(caches);
-        return cacheManager;
+        return cache;
     }
 
     /**
@@ -133,11 +138,13 @@ public class LocalCacheManagerConfig {
             String groupName = split[0];
             String propertyName = split[1];
 
-            LocalCacheGroupProperties itemProperties = groups.computeIfAbsent(groupName, k -> new LocalCacheGroupProperties());
+            LocalCacheGroupProperties itemProperties = groups.computeIfAbsent(
+                    groupName, k -> new LocalCacheGroupProperties());
             try {
                 BeanUtils.copyProperty(itemProperties, propertyName, entry.getValue());
             } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new IllegalArgumentException("Invalid property: " + entry.getKey() + " => " + entry.getValue(), e);
+                throw new IllegalArgumentException("Invalid property: " + entry.getKey() +
+                        " => " + entry.getValue(), e);
             }
         }
 

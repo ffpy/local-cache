@@ -63,6 +63,7 @@ public enum CacheAction {
     ;
     /** 操作成功时的返回信息 */
     private static final String RESULT_SUCCESS = "success";
+
     /** 动作名到动作的映射 */
     private static Map<String, CacheAction> actionMap;
 
@@ -135,6 +136,7 @@ public enum CacheAction {
     @ToString
     @RequiredArgsConstructor
     public static class Result {
+
         /** 响应码 */
         private final HttpStatus status;
 

@@ -1,4 +1,4 @@
-package com.tom.common.localcache.config;
+package com.tom.common.localcache.cache;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 @Setter
 @ToString
 @RequiredArgsConstructor
-public class ConfigTimeValue {
+class TimeValue {
 
     /** 时间字符串解析表达式 */
     private static final Pattern PATTERN = Pattern.compile("(\\d+)(\\w*)");
@@ -65,7 +65,7 @@ public class ConfigTimeValue {
      * @param timeStr 时间字符串
      * @return 解析结果
      */
-    public static ConfigTimeValue parse(String timeStr) {
+    public static TimeValue parse(String timeStr) {
         Matcher matcher = PATTERN.matcher(timeStr);
         if (!matcher.find()) {
             throw new IllegalArgumentException("Invalid time value: " + timeStr);
@@ -80,6 +80,6 @@ public class ConfigTimeValue {
             unit = DEFAULT_UNIT;
         }
 
-        return new ConfigTimeValue(value, unit);
+        return new TimeValue(value, unit);
     }
 }

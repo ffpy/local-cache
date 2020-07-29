@@ -1,6 +1,6 @@
 package com.tom.common.localcache.properties;
 
-import com.tom.common.localcache.constant.ConfigConstant;
+import com.tom.common.localcache.constant.ConfigPrefix;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -15,7 +15,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Getter
 @Setter
 @ToString
-@ConfigurationProperties(ConfigConstant.GLOBAL_GROUP_PROPERTIES_PREFIX)
+@ConfigurationProperties(ConfigPrefix.GLOBAL_GROUP)
 public class LocalCacheGlobalGroupProperties {
 
     /** 开启缓存值软引用 */
