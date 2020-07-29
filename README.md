@@ -1,0 +1,1 @@
+封装了SpringBoot和Caffeine来作为本地缓存，并导出对应的Http接口来实现缓存管理。
