@@ -142,6 +142,7 @@ public class LocalCacheManagerConfig {
 
             LocalCacheGroupProperties itemProperties = groups.computeIfAbsent(
                     groupName, k -> new LocalCacheGroupProperties());
+            // TODO 处理横杠连接的情况
             try {
                 BeanUtils.copyProperty(itemProperties, propertyName, entry.getValue());
             } catch (IllegalAccessException | InvocationTargetException e) {

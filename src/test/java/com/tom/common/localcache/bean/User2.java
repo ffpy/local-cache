@@ -1,4 +1,4 @@
-package com.tom.common.localcache;
+package com.tom.common.localcache.bean;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,6 +9,6 @@ import lombok.Data;
  */
 @Data
 @AllArgsConstructor
-public class User1 {
+public class User2 {
     private String username;
 }

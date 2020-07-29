@@ -1,6 +1,9 @@
-package com.tom.common.localcache;
+package com.tom.common.localcache.service;
 
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.tom.common.localcache.bean.BigUser;
+import com.tom.common.localcache.bean.User1;
+import com.tom.common.localcache.bean.User2;
 import com.tom.common.localcache.manager.LocalCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -24,5 +27,10 @@ public class UserService {
     public User2 loadUser2(String username) {
         LoadingCache<String, User2> cache = cacheManager.getLoadingCache("user2");
         return cache.get(username);
+    }
+
+    @Cacheable("big-user")
+    public BigUser loadBigUser(String username) {
+        return new BigUser(username);
     }
 }

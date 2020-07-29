@@ -1,5 +1,8 @@
 package com.tom.common.localcache;
 
+import com.tom.common.localcache.bean.User1;
+import com.tom.common.localcache.bean.User2;
+import com.tom.common.localcache.service.UserService;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -1,6 +1,7 @@
 package com.tom.common.localcache;
 
 import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.tom.common.localcache.bean.User2;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Component;
