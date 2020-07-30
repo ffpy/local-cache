@@ -35,9 +35,13 @@ public class LocalCacheManagerImpl implements LocalCacheManager, InitializingBea
     @SuppressWarnings("unchecked")
     @Override
     public <K, V> LoadingCache<K, V> getLoadingCache(String name) {
-        return (LoadingCache<K, V>) Optional.ofNullable(getCache(name))
+        Object cache = Optional.ofNullable(getCache(name))
                 .map(Cache::getNativeCache)
                 .orElseThrow(() -> new IllegalArgumentException("没有名为" + name + "的缓存"));
+        if (!(cache instanceof LoadingCache)) {
+            throw new RuntimeException("缓存类型不正确，请配置" + name + "的cache-loader属性");
+        }
+        return (LoadingCache<K, V>) cache;
     }
 
     @Override

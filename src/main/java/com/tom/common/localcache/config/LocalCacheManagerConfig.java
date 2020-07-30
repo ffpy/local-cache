@@ -12,6 +12,7 @@ import com.tom.common.localcache.properties.LocalCacheGlobalGroupProperties;
 import com.tom.common.localcache.properties.LocalCacheGroupProperties;
 import com.tom.common.localcache.properties.LocalCacheManagerProperties;
 import com.tom.common.localcache.properties.LocalCacheProperties;
+import com.tom.common.localcache.util.MyStringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -140,9 +141,13 @@ public class LocalCacheManagerConfig {
             String groupName = split[0];
             String propertyName = split[1];
 
+            // 属性名中划线转驼峰
+            if (StringUtils.contains(propertyName, '-')) {
+                propertyName = MyStringUtils.kebabCaseToCamelCase(propertyName);
+            }
+
             LocalCacheGroupProperties itemProperties = groups.computeIfAbsent(
                     groupName, k -> new LocalCacheGroupProperties());
-            // TODO 处理横杠连接的情况
             try {
                 BeanUtils.copyProperty(itemProperties, propertyName, entry.getValue());
             } catch (IllegalAccessException | InvocationTargetException e) {

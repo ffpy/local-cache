@@ -8,7 +8,7 @@ import java.text.DecimalFormat;
  * @author 温龙盛
  * @date 2020/7/16 18:15
  */
-public class NumberUtils {
+public class MyNumberUtils {
 
     private static DecimalFormat PERCENT_FORMAT;
 

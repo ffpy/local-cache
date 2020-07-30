@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+/**
+ * 测试不设置缓存值软引用是否会引发OOM
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {
         "local-cache.group.big-user.enable=true",

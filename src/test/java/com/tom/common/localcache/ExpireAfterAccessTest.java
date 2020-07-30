@@ -11,6 +11,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 测试设置访问过期时间是否生效
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {
         "local-cache.group.user1.enable=true",

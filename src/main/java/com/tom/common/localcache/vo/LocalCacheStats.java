@@ -1,6 +1,6 @@
 package com.tom.common.localcache.vo;
 
-import com.tom.common.localcache.util.NumberUtils;
+import com.tom.common.localcache.util.MyNumberUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import lombok.Getter;
@@ -64,9 +64,9 @@ public class LocalCacheStats {
         this.size = size;
         this.requestCount = stats.requestCount();
         this.hitCount = stats.hitCount();
-        this.hitRate = NumberUtils.toPercentString(stats.hitRate());
+        this.hitRate = MyNumberUtils.toPercentString(stats.hitRate());
         this.missCount = stats.missCount();
-        this.missRate = NumberUtils.toPercentString(stats.missRate());
+        this.missRate = MyNumberUtils.toPercentString(stats.missRate());
         this.loadCount = stats.loadCount();
         this.loadSuccessCount = stats.loadSuccessCount();
         this.loadFailureCount = stats.loadFailureCount();

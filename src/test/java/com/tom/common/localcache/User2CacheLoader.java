@@ -7,6 +7,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Component;
 
 /**
+ * 用于测试的{@link CacheLoader}
+ *
  * @author 温龙盛
  * @date 2020/7/29 18:28
  */

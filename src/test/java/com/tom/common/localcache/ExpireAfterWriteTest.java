@@ -11,6 +11,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 测试设置写过期时间是否生效
+ *
+ * @author 温龙盛
+ * @date 2020-07-30 09:46
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {
         "local-cache.group.user1.enable=true",

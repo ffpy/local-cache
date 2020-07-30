@@ -12,13 +12,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 测试设置最大缓存数是否生效
+ * 测试用中划线属性名是否生效
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {
-        "local-cache.group.user1.maximumSize=2",
+        "local-cache.group.user1.enable=true",
+        "local-cache.group.user1.expire-after-access=3s",
 })
-public class MaximumSizeTest {
+public class KebabCaseTest {
 
     @Autowired
     private UserService userService;
@@ -28,19 +29,11 @@ public class MaximumSizeTest {
         User1 user1 = userService.loadUser1("user1");
         User1 user2 = userService.loadUser1("user1");
         Assertions.assertThat(user1 == user2).isTrue();
-
-        userService.loadUser1("user2");
-        userService.loadUser1("user2");
-
-        TimeUnit.SECONDS.sleep(1);
+        TimeUnit.SECONDS.sleep(2);
         User1 user3 = userService.loadUser1("user1");
         Assertions.assertThat(user1 == user3).isTrue();
-
-        userService.loadUser1("user3");
-        userService.loadUser1("user3");
-
-        TimeUnit.SECONDS.sleep(1);
+        TimeUnit.SECONDS.sleep(3);
         User1 user4 = userService.loadUser1("user1");
-        Assertions.assertThat(user1 == user4).isTrue();
+        Assertions.assertThat(user1 == user4).isFalse();
     }
 }
