@@ -128,17 +128,17 @@ public class LocalCacheManagerFilter implements Filter {
             write(response, HttpStatus.BAD_REQUEST, "缓存组不存在: " + groupName, prettyPrint);
             return;
         }
-        CacheAction action = CacheAction.of(actionName).orElse(null);
+        CacheGroupAction action = CacheGroupAction.of(actionName).orElse(null);
         if (action == null) {
             write(response, HttpStatus.BAD_REQUEST, "不支持的动作: " + actionName, prettyPrint);
             return;
         }
-        CacheAction.Result result = action.execute(cache, request);
+        CacheGroupAction.Result result = action.execute(cache, request);
         write(response, result.getStatus(), result.getData(), prettyPrint);
     }
 
     /**
-     * 执行全部分组管理动作
+     * 执行全局分组管理动作
      *
      * @param request    request
      * @param response   response
@@ -146,19 +146,28 @@ public class LocalCacheManagerFilter implements Filter {
      * @throws IOException IO错误
      */
     private void processGlobalAction(HttpServletRequest request, HttpServletResponse response, String actionName) throws IOException {
-        CacheAction action = CacheAction.of(actionName).orElse(null);
         boolean prettyPrint = isPrettyPrint(request);
-        if (action == null) {
-            write(response, HttpStatus.BAD_REQUEST, "不支持的动作: " + actionName, prettyPrint);
+
+        // 执行全局动作
+        GlobalAction globalAction = GlobalAction.of(actionName).orElse(null);
+        if (globalAction != null) {
+            Action.Result result = globalAction.execute(request);
+            write(response, result.getStatus(), result.getData(), prettyPrint);
             return;
         }
 
-        Map<String, Cache<Object, Object>> cacheMap = localCacheManagerConfig.getCaffeineCacheMap();
-        Map<String, Object> resultMap = new HashMap<>(cacheMap.size());
-        for (Map.Entry<String, Cache<Object, Object>> entry : cacheMap.entrySet()) {
-            resultMap.put(entry.getKey(), action.execute(entry.getValue(), request));
+        // 对所有分组执行动作并聚合结果
+        CacheGroupAction groupAction = CacheGroupAction.of(actionName).orElse(null);
+        if (groupAction != null) {
+            Map<String, Cache<Object, Object>> cacheMap = localCacheManagerConfig.getCaffeineCacheMap();
+            Map<String, Object> resultMap = new HashMap<>(cacheMap.size());
+            for (Map.Entry<String, Cache<Object, Object>> entry : cacheMap.entrySet()) {
+                resultMap.put(entry.getKey(), groupAction.execute(entry.getValue(), request));
+            }
+            write(response, HttpStatus.OK, resultMap, prettyPrint);
+        } else {
+            write(response, HttpStatus.BAD_REQUEST, "不支持的动作: " + actionName, prettyPrint);
         }
-        write(response, HttpStatus.OK, resultMap, prettyPrint);
     }
 
     /**

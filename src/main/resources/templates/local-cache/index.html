@@ -12,6 +12,12 @@
     <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
     <![endif]-->
+
+    <style>
+        td {
+            word-break: break-all;
+        }
+    </style>
 </head>
 <body>
 <div id="app">
@@ -21,7 +27,8 @@
             <div class="container-fluid">
                 <!-- Brand and toggle get grouped for better mobile display -->
                 <div class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                            data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
                         <span class="sr-only">Toggle navigation</span>
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
@@ -34,13 +41,78 @@
 
         <div class="row">
             <div class="col-md-2">
-                <h1>{{message}}</h1>
+                <ul class="nav nav-pills nav-stacked">
+                    <li role="presentation"><a href="#" @click="selectGroup('')">请选择分组</a>
+                    </li>
+                    <li role="presentation" :class="{active:currentGroup == k}" v-for="(v, k) in groups" :key="k"><a
+                            href="#" @click="selectGroup(k)">{{ k }}({{ v.desc }})</a></li>
+                </ul>
             </div>
-            <div class="col-md-10">
-                <h1>{{message}}</h1>
+            <div class="col-md-10" v-show="currentGroup != ''">
+                <form class="form-inline" style="margin-bottom: 10px;">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="搜索键" v-model="query">
+                    </div>
+                    <button type="button" class="btn btn-default" @click="search">搜索</button>
+                    <button type="button" class="btn btn-default" @click="query = ''">重置</button>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" v-model="queryRegex"> 正则表达式
+                        </label>
+                        <label data-toggle="tooltip" data-placement="top" title="搜索指定键名，不支持模糊搜索">
+                            <input type="checkbox" v-model="queryAccurate"> 精确搜索
+                        </label>
+                    </div>
+                    <div class="pull-right">
+                        <button type="button" class="btn btn-default" @click="showGroupStats">查看统计信息</button>
+                        <button type="button" class="btn btn-danger" @click="clearGroup">清空此分组</button>
+                    </div>
+                </form>
+                <table class="table table-striped table-hover table-bordered">
+                    <tr>
+                        <th style="min-width: 100px">键</th>
+                        <th>值</th>
+                        <th>操作</th>
+                    </tr>
+                    <tr v-for="item in cacheData">
+                        <td>{{ item.key }}</td>
+                        <td>{{ item.value }}</td>
+                        <td><a class="btn btn-danger btn-xs" @click="deleteItem(item.key)">删除</a></td>
+                    </tr>
+                </table>
+                <div>
+                    <div style="float:right;">个数：{{ cacheDataSize }}</div>
+                </div>
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="groupStatsModel" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">{{ currentGroup }}</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped table-hover table-bordered">
+                        <tr>
+                            <th>键</th>
+                            <th>值</th>
+                        </tr>
+                        <tr v-for="(v, k) in groupStatsModelData" :key="k">
+                            <td>{{ k }}</td>
+                            <td>{{ v }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">确定</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 
 </div>
 
@@ -48,12 +120,105 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 <script>
+    const PATH_PREFIX = '/local-cache-manager'
     const app = new Vue({
         el: '#app',
         data: {
-            message: 'Hello Vue!'
+            // 搜索关键字
+            query: '',
+            // 是否启用正则表达式搜索
+            queryRegex: false,
+            // 是否启用精确搜索
+            queryAccurate: true,
+            // 分组列表
+            groups: {},
+            // 当前选中的分组名
+            currentGroup: '',
+            // 缓存表格数据
+            cacheData: [],
+            // 分组统计信息模态框数据
+            groupStatsModelData: {}
+        },
+        computed: {
+            cacheDataSize: function () {
+                if (!this.cacheData) {
+                    return 0;
+                }
+                return this.cacheData.length;
+            }
+        },
+        methods: {
+            // 选择分组
+            selectGroup: function (group) {
+                this.currentGroup = group;
+                this.cacheData = [];
+            },
+            // 加载分组列表
+            loadGroups: function () {
+                $.getJSON(PATH_PREFIX + '/global/groups', data => {
+                    console.log(data);
+                    this.groups = data;
+                });
+            },
+            // 搜索分组键
+            search: function () {
+                if (this.queryAccurate && this.query !== '') {
+                    const query = this.query;
+                    $.getJSON(PATH_PREFIX + '/group/' + this.currentGroup + '/get',
+                        {key: query}, data => {
+                            console.log(data);
+                            if (data === null || data === undefined) {
+                                this.cacheData = []
+                            } else {
+                                this.cacheData = [{key: query, value: data}];
+                            }
+                        });
+                } else {
+                    $.getJSON(PATH_PREFIX + '/group/' + this.currentGroup + '/list',
+                        {query: this.query, regex: this.queryRegex}, data => {
+                            console.log(data);
+                            this.cacheData = data;
+                        });
+                }
+            },
+            // 清空分组数据
+            clearGroup: function () {
+                if (confirm('是否确认清空' + this.currentGroup + '分组的数据?')) {
+                    $.getJSON(PATH_PREFIX + '/group/' + this.currentGroup + '/clear', data => {
+                        console.log(data);
+                        this.cacheData = [];
+                    });
+                }
+            },
+            // 删除分组中的指定项
+            deleteItem: function (key) {
+                $.getJSON(PATH_PREFIX + '/group' + this.currentGroup + '/delete?key=' + key, data => {
+                    console.log(data);
+                    for (let i = 0; i < this.cacheData.length; i++) {
+                        if (this.cacheData[i].key === key) {
+                            this.cacheData.splice(i, 1);
+                            break;
+                        }
+                    }
+                });
+            },
+            // 显示分组统计信息
+            showGroupStats: function () {
+                this.groupStatsModelData = {};
+                $.getJSON(PATH_PREFIX + '/group' + this.currentGroup + '/stats', data => {
+                    console.log(data);
+                    this.groupStatsModelData = data;
+                    $('#groupStatsModel').modal('show');
+                });
+            }
+        },
+        created: function () {
+            this.loadGroups();
+        },
+        mounted: function () {
+            $('[data-toggle="tooltip"]').tooltip();
         }
-    })
+    });
 </script>
 </body>
 </html>
