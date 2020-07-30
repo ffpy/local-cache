@@ -65,9 +65,17 @@ public class CacheFactory {
         }
 
         if (StringUtils.isNotBlank(properties.getCacheLoader())) {
-            return caffeine.build(getCacheLoader(properties, applicationContext));
+            if (properties.getCacheNullValue()) {
+                return new CacheNullValueLoadingCache(caffeine.build(getCacheLoader(properties, applicationContext)));
+            } else {
+                return caffeine.build(getCacheLoader(properties, applicationContext));
+            }
         } else {
-            return caffeine.build();
+            if (properties.getCacheNullValue()) {
+                return caffeine.build();
+            } else {
+                return new NotCacheNullValueCache(caffeine.build());
+            }
         }
     }
 

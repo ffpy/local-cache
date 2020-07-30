@@ -9,6 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiFunction;
+
 /**
  * 测试用户服务
  *
@@ -21,8 +25,23 @@ public class UserService {
     @Autowired
     private LocalCacheManager cacheManager;
 
+    private final Map<String, Integer> loadUser1Counter = new HashMap<>();
+
+    public Map<String, Integer> getLoadUser1Counter() {
+        return loadUser1Counter;
+    }
+
     @Cacheable("user1")
     public User1 loadUser1(String username) {
+        loadUser1Counter.compute(username, (key, value) -> {
+            if (value == null) {
+                return 1;
+            }
+            return value + 1;
+        });
+        if ("null".equals(username)) {
+            return null;
+        }
         return new User1(username);
     }
 

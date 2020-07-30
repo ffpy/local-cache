@@ -74,7 +74,7 @@ public class LocalCacheManagerConfig {
             String groupName = entry.getKey();
             Cache<Object, Object> cache = createCache(applicationContext, entry.getValue());
             caffeineCacheMap.put(groupName, cache);
-            caches.add(new CaffeineCache(groupName, cache));
+            caches.add(new CaffeineCache(groupName, cache, true));
         }
 
         cacheManager.setCaches(caches);

@@ -9,6 +9,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * 测试设置缓存值弱引用能否避免OOM
+ *
+ * @author 温龙盛
+ * @date 2020-07-30 10:11
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {

@@ -20,6 +20,9 @@ public class LocalCacheGroupProperties {
     /** 是否启用缓存，设为false则每次都会请求数据，不会存在缓存中 */
     private boolean enable = true;
 
+    /** 是否缓存空值，防止缓存穿透 */
+    private Boolean cacheNullValue;
+
     /** 开启缓存值软引用 */
     private Boolean softValues;
 

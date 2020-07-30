@@ -13,6 +13,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 测试设置最大缓存数是否生效
+ *
+ * @author 温龙盛
+ * @date 2020-07-30 10:11
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {
