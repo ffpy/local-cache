@@ -7,7 +7,7 @@ import lombok.ToString;
 /**
  * 缓存分组属性配置
  * <p>
- * 注意，如果修改字段，要同步修改{@link LocalCacheGlobalGroupProperties}中的字段
+ * 注意，如果修改字段，要看要不要修改{@link LocalCacheGlobalGroupProperties}中的字段
  *
  * @author 温龙盛
  * @date 2020/7/29 9:28
@@ -19,6 +19,9 @@ public class LocalCacheGroupProperties {
 
     /** 是否启用缓存，设为false则每次都会请求数据，不会存在缓存中 */
     private boolean enable = true;
+
+    /** 缓存组描述，用于显示在缓存管理页面 */
+    private String desc;
 
     /** 是否缓存空值，防止缓存穿透 */
     private Boolean cacheNullValue;

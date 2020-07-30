@@ -44,7 +44,4 @@ public class LocalCacheGlobalGroupProperties {
 
     /** 缓存容量最大值 */
     private Integer maximumSize;
-
-    /** {@link com.github.benmanes.caffeine.cache.CacheLoader}的Bean名称 */
-    private String cacheLoader;
 }

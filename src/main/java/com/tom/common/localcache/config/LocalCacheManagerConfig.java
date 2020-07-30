@@ -56,7 +56,7 @@ public class LocalCacheManagerConfig {
             String.class);
 
     /** 缓存分组名到Caffeine缓存的映射 */
-    public final Map<String, com.github.benmanes.caffeine.cache.Cache<Object, Object>> caffeineCacheMap = new HashMap<>();
+    private final Map<String, com.github.benmanes.caffeine.cache.Cache<Object, Object>> caffeineCacheMap = new HashMap<>();
 
     @Autowired
     private LocalCacheProperties localCacheProperties;
@@ -64,9 +64,12 @@ public class LocalCacheManagerConfig {
     @Autowired
     private LocalCacheGlobalGroupProperties globalGroupProperties;
 
+    /**
+     * 本地缓存管理器
+     */
     @Bean
     public LocalCacheManager cacheManager(ConfigurableEnvironment environment, ApplicationContext applicationContext) {
-        Map<String, LocalCacheGroupProperties> groups = getGroups(environment);
+        Map<String, LocalCacheGroupProperties> groups = groupPropertiesMap(environment);
 
         LocalCacheManagerImpl cacheManager = new LocalCacheManagerImpl();
         List<org.springframework.cache.Cache> caches = new ArrayList<>();
@@ -79,6 +82,55 @@ public class LocalCacheManagerConfig {
 
         cacheManager.setCaches(caches);
         return cacheManager;
+    }
+
+    /**
+     * 缓存分组及对应的属性（分组名 -> 分组属性）
+     */
+    @Bean
+    public Map<String, LocalCacheGroupProperties> groupPropertiesMap(ConfigurableEnvironment environment) {
+        // 获取所有以local-cache.group开头的配置项
+        Binder binder = Binder.get(environment);
+        Map<String, String> groupMap = binder.bind(CACHE_GROUP, STRING_MAP).orElseGet(Collections::emptyMap);
+
+        // 获取分组及其配置
+        Map<String, LocalCacheGroupProperties> groups = new HashMap<>();
+        for (Map.Entry<String, String> entry : groupMap.entrySet()) {
+            String[] split = StringUtils.split(entry.getKey(), '.');
+            if (split == null || split.length != 2) {
+                throw new IllegalArgumentException("Invalid key: " + entry.getKey());
+            }
+            String groupName = split[0];
+            String propertyName = split[1];
+
+            // 属性名中划线转驼峰
+            if (StringUtils.contains(propertyName, '-')) {
+                propertyName = MyStringUtils.kebabCaseToCamelCase(propertyName);
+            }
+
+            LocalCacheGroupProperties itemProperties = groups.computeIfAbsent(
+                    groupName, k -> new LocalCacheGroupProperties());
+            try {
+                BeanUtils.copyProperty(itemProperties, propertyName, entry.getValue());
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new IllegalArgumentException("Invalid property: " + entry.getKey() +
+                        " => " + entry.getValue(), e);
+            }
+        }
+
+        // 处理全局配置
+        groups.forEach((key, value) -> copyPropertyFromGlobal(value));
+
+        return groups;
+    }
+
+    /**
+     * 获取缓存分组Map
+     *
+     * @return 缓存分组Map
+     */
+    public Map<String, Cache<Object, Object>> getCaffeineCacheMap() {
+        return Collections.unmodifiableMap(caffeineCacheMap);
     }
 
     /**
@@ -121,48 +173,6 @@ public class LocalCacheManagerConfig {
     }
 
     /**
-     * 获取缓存分组及对应的属性
-     *
-     * @param environment {@link ConfigurableEnvironment}
-     * @return 分组名 -> 分组属性
-     */
-    private Map<String, LocalCacheGroupProperties> getGroups(ConfigurableEnvironment environment) {
-        // 获取所有以local-cache.group开头的配置项
-        Binder binder = Binder.get(environment);
-        Map<String, String> groupMap = binder.bind(CACHE_GROUP, STRING_MAP).orElseGet(Collections::emptyMap);
-
-        // 获取分组及其配置
-        Map<String, LocalCacheGroupProperties> groups = new HashMap<>();
-        for (Map.Entry<String, String> entry : groupMap.entrySet()) {
-            String[] split = StringUtils.split(entry.getKey(), '.');
-            if (split == null || split.length != 2) {
-                throw new IllegalArgumentException("Invalid key: " + entry.getKey());
-            }
-            String groupName = split[0];
-            String propertyName = split[1];
-
-            // 属性名中划线转驼峰
-            if (StringUtils.contains(propertyName, '-')) {
-                propertyName = MyStringUtils.kebabCaseToCamelCase(propertyName);
-            }
-
-            LocalCacheGroupProperties itemProperties = groups.computeIfAbsent(
-                    groupName, k -> new LocalCacheGroupProperties());
-            try {
-                BeanUtils.copyProperty(itemProperties, propertyName, entry.getValue());
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new IllegalArgumentException("Invalid property: " + entry.getKey() +
-                        " => " + entry.getValue(), e);
-            }
-        }
-
-        // 处理全局配置
-        groups.forEach((key, value) -> copyPropertyFromGlobal(value));
-
-        return groups;
-    }
-
-    /**
      * 如果分组中的字段值为空，则设置为全局分组中的字段值
      *
      * @param properties 分组属性
@@ -171,9 +181,12 @@ public class LocalCacheManagerConfig {
         for (Field field : LocalCacheGroupProperties.class.getDeclaredFields()) {
             try {
                 if (PropertyUtils.getSimpleProperty(properties, field.getName()) == null) {
-                    Object valueInGlobal = PropertyUtils.getSimpleProperty(globalGroupProperties, field.getName());
-                    if (valueInGlobal != null) {
-                        PropertyUtils.setSimpleProperty(properties, field.getName(), valueInGlobal);
+                    try {
+                        Object valueInGlobal = PropertyUtils.getSimpleProperty(globalGroupProperties, field.getName());
+                        if (valueInGlobal != null) {
+                            PropertyUtils.setSimpleProperty(properties, field.getName(), valueInGlobal);
+                        }
+                    } catch (NoSuchMethodException ignore) {
                     }
                 }
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {

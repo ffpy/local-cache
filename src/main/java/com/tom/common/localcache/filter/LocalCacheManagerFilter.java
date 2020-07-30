@@ -23,6 +23,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 本地缓存管理接口过滤器，用于提供管理接口
@@ -37,6 +39,12 @@ public class LocalCacheManagerFilter implements Filter {
 
     /** 管理接口访问路径 */
     public static final String PATH = "/local-cache-manager";
+
+    /** 缓存分组路径前缀 */
+    private static final String PATH_GROUP_PREFIX = "/group";
+
+    /** 全局分组路径前缀 */
+    private static final String PATH_GLOBAL_PREFIX = "/global";
 
     /** 是否格式化打印参数名 */
     private static final String PARAM_PRETTY = "pretty";
@@ -60,13 +68,30 @@ public class LocalCacheManagerFilter implements Filter {
 
         String path = request.getServletPath();
         if (path.startsWith(PATH)) {
-            GroupAndAction groupAndAction = getGroupAndActionFromPath(path);
-            if (groupAndAction == null) {
-                filterChain.doFilter(servletRequest, servletResponse);
-                return;
-            }
+            path = path.substring(PATH.length());
 
-            processAction(request, response, groupAndAction.getGroup(), groupAndAction.getAction());
+            if (path.startsWith(PATH_GROUP_PREFIX)) {
+                // 指定分组执行动作
+                path = path.substring(PATH_GROUP_PREFIX.length());
+                GroupAndAction groupAndAction = getGroupAndActionFromPath(path);
+                if (groupAndAction == null) {
+                    filterChain.doFilter(servletRequest, servletResponse);
+                    return;
+                }
+
+                processGroupAction(request, response, groupAndAction.getGroup(), groupAndAction.getAction());
+            } else if (path.startsWith(PATH_GLOBAL_PREFIX)) {
+                // 全部分组执行动作
+                GroupAndAction groupAndAction = getGroupAndActionFromPath(path);
+                if (groupAndAction == null) {
+                    filterChain.doFilter(servletRequest, servletResponse);
+                    return;
+                }
+
+                processGlobalAction(request, response, groupAndAction.getAction());
+            } else {
+                filterChain.doFilter(servletRequest, servletResponse);
+            }
         } else {
             filterChain.doFilter(servletRequest, servletResponse);
         }
@@ -79,19 +104,15 @@ public class LocalCacheManagerFilter implements Filter {
      * @return 缓存分组名和动作名
      */
     private GroupAndAction getGroupAndActionFromPath(String path) {
-        if (path != null && path.length() > PATH.length()) {
-            path = path.substring(PATH.length());
-            String[] split = StringUtils.split(path, '/');
-            if (split != null && split.length == 2) {
-                return new GroupAndAction(split[0], split[1]);
-            }
+        String[] split = StringUtils.split(path, '/');
+        if (split != null && split.length == 2) {
+            return new GroupAndAction(split[0], split[1]);
         }
-
         return null;
     }
 
     /**
-     * 执行缓存管理动作
+     * 执行缓存分组管理动作
      *
      * @param request    request
      * @param response   response
@@ -99,10 +120,10 @@ public class LocalCacheManagerFilter implements Filter {
      * @param actionName 动作名
      * @throws IOException IO错误
      */
-    private void processAction(HttpServletRequest request, HttpServletResponse response,
-                               String groupName, String actionName) throws IOException {
+    private void processGroupAction(HttpServletRequest request, HttpServletResponse response,
+                                    String groupName, String actionName) throws IOException {
         Cache<Object, Object> cache = localCacheManagerConfig.getCache(groupName);
-        boolean prettyPrint = request.getParameter(PARAM_PRETTY) != null;
+        boolean prettyPrint = isPrettyPrint(request);
         if (cache == null) {
             write(response, HttpStatus.BAD_REQUEST, "缓存组不存在: " + groupName, prettyPrint);
             return;
@@ -114,6 +135,30 @@ public class LocalCacheManagerFilter implements Filter {
         }
         CacheAction.Result result = action.execute(cache, request);
         write(response, result.getStatus(), result.getData(), prettyPrint);
+    }
+
+    /**
+     * 执行全部分组管理动作
+     *
+     * @param request    request
+     * @param response   response
+     * @param actionName 动作名
+     * @throws IOException IO错误
+     */
+    private void processGlobalAction(HttpServletRequest request, HttpServletResponse response, String actionName) throws IOException {
+        CacheAction action = CacheAction.of(actionName).orElse(null);
+        boolean prettyPrint = isPrettyPrint(request);
+        if (action == null) {
+            write(response, HttpStatus.BAD_REQUEST, "不支持的动作: " + actionName, prettyPrint);
+            return;
+        }
+
+        Map<String, Cache<Object, Object>> cacheMap = localCacheManagerConfig.getCaffeineCacheMap();
+        Map<String, Object> resultMap = new HashMap<>(cacheMap.size());
+        for (Map.Entry<String, Cache<Object, Object>> entry : cacheMap.entrySet()) {
+            resultMap.put(entry.getKey(), action.execute(entry.getValue(), request));
+        }
+        write(response, HttpStatus.OK, resultMap, prettyPrint);
     }
 
     /**
@@ -136,6 +181,16 @@ public class LocalCacheManagerFilter implements Filter {
         }
         writer.flush();
         writer.close();
+    }
+
+    /**
+     * 是否要格式化输出
+     *
+     * @param request HttpServletRequest
+     * @return true为是，false为否
+     */
+    private boolean isPrettyPrint(HttpServletRequest request) {
+        return request.getParameter(PARAM_PRETTY) != null;
     }
 
     @Getter
