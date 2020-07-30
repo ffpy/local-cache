@@ -1,6 +1,7 @@
 package com.tom.common.localcache.config;
 
 import com.tom.common.localcache.filter.LocalCacheManagerFilter;
+import com.tom.common.localcache.properties.LocalCacheManagerProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -19,11 +20,14 @@ public class LocalCacheManagerFilterConfig {
     @Autowired
     private LocalCacheManagerFilter localCacheManagerFilter;
 
+    @Autowired
+    private LocalCacheManagerProperties localCacheManagerProperties;
+
     @Bean
     public FilterRegistrationBean<?> registerFilter() {
         FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>();
         registration.setFilter(localCacheManagerFilter);
-        registration.addUrlPatterns(LocalCacheManagerFilter.PATH + "/*");
+        registration.addUrlPatterns(localCacheManagerProperties.getPath() + "/*");
         registration.setName("localCacheManagerFilter");
         registration.setOrder(1);
         return registration;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -120,11 +120,11 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 <script>
-    const PATH_PREFIX = '/local-cache-manager'
+    const PATH = '[[${path}]]';
     const app = new Vue({
         el: '#app',
         data: {
-            // 搜索关键字
+            // 搜索关键
             query: '',
             // 是否启用正则表达式搜索
             queryRegex: false,
@@ -155,7 +155,7 @@
             },
             // 加载分组列表
             loadGroups: function () {
-                $.getJSON(PATH_PREFIX + '/global/groups', data => {
+                $.getJSON(PATH + '/global/groups', data => {
                     console.log(data);
                     this.groups = data;
                 });
@@ -164,7 +164,7 @@
             search: function () {
                 if (this.queryAccurate && this.query !== '') {
                     const query = this.query;
-                    $.getJSON(PATH_PREFIX + '/group/' + this.currentGroup + '/get',
+                    $.getJSON(PATH + '/group/' + this.currentGroup + '/get',
                         {key: query}, data => {
                             console.log(data);
                             if (data === null || data === undefined) {
@@ -174,7 +174,7 @@
                             }
                         });
                 } else {
-                    $.getJSON(PATH_PREFIX + '/group/' + this.currentGroup + '/list',
+                    $.getJSON(PATH + '/group/' + this.currentGroup + '/list',
                         {query: this.query, regex: this.queryRegex}, data => {
                             console.log(data);
                             this.cacheData = data;
@@ -184,7 +184,7 @@
             // 清空分组数据
             clearGroup: function () {
                 if (confirm('是否确认清空' + this.currentGroup + '分组的数据?')) {
-                    $.getJSON(PATH_PREFIX + '/group/' + this.currentGroup + '/clear', data => {
+                    $.getJSON(PATH + '/group/' + this.currentGroup + '/clear', data => {
                         console.log(data);
                         this.cacheData = [];
                     });
@@ -192,7 +192,7 @@
             },
             // 删除分组中的指定项
             deleteItem: function (key) {
-                $.getJSON(PATH_PREFIX + '/group' + this.currentGroup + '/delete?key=' + key, data => {
+                $.getJSON(PATH + '/group' + this.currentGroup + '/delete?key=' + key, data => {
                     console.log(data);
                     for (let i = 0; i < this.cacheData.length; i++) {
                         if (this.cacheData[i].key === key) {
@@ -205,7 +205,7 @@
             // 显示分组统计信息
             showGroupStats: function () {
                 this.groupStatsModelData = {};
-                $.getJSON(PATH_PREFIX + '/group' + this.currentGroup + '/stats', data => {
+                $.getJSON(PATH + '/group' + this.currentGroup + '/stats', data => {
                     console.log(data);
                     this.groupStatsModelData = data;
                     $('#groupStatsModel').modal('show');

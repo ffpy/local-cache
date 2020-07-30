@@ -3,6 +3,7 @@ package com.tom.common.localcache.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.tom.common.localcache.config.LocalCacheManagerConfig;
+import com.tom.common.localcache.properties.LocalCacheManagerProperties;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -37,9 +38,6 @@ import java.util.Map;
 @ConditionalOnProperty(value = "local-cache.manager.enable", matchIfMissing = true)
 public class LocalCacheManagerFilter implements Filter {
 
-    /** 管理接口访问路径 */
-    public static final String PATH = "/local-cache-manager";
-
     /** 缓存分组路径前缀 */
     private static final String PATH_GROUP_PREFIX = "/group";
 
@@ -52,6 +50,9 @@ public class LocalCacheManagerFilter implements Filter {
     private static final String CONTENT_TYPE_APPLICATION_JSON = "application/json; charset=utf-8";
 
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private LocalCacheManagerProperties localCacheManagerProperties;
 
     @Autowired
     private LocalCacheManagerConfig localCacheManagerConfig;
@@ -67,8 +68,9 @@ public class LocalCacheManagerFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
         String path = request.getServletPath();
-        if (path.startsWith(PATH)) {
-            path = path.substring(PATH.length());
+        String contextPath = localCacheManagerProperties.getPath();
+        if (path.startsWith(contextPath)) {
+            path = path.substring(contextPath.length());
 
             if (path.startsWith(PATH_GROUP_PREFIX)) {
                 // 指定分组执行动作
