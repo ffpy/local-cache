@@ -184,10 +184,12 @@
             },
             // 重新加载分组数据
             reloadGroup: function () {
-                $.getJSON(PATH + '/group' + this.currentGroup + '/reload-all', data => {
-                    if (!this.checkResponse(data)) return;
-                    this.search();
-                });
+                if (confirm('是否确认重新加载' + this.currentGroup + '分组的数据?')) {
+                    $.getJSON(PATH + '/group' + this.currentGroup + '/reload-all', data => {
+                        if (!this.checkResponse(data)) return;
+                        this.search();
+                    });
+                }
             },
             // 清空分组数据
             clearGroup: function () {
