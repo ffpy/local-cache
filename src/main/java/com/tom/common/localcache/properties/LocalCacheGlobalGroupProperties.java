@@ -18,7 +18,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(ConfigPrefix.GLOBAL_GROUP)
 public class LocalCacheGlobalGroupProperties {
 
-    /** 是否缓存空值，防止缓存穿透 */
+    /** 是否缓存空值，防止缓存穿透，默认开启 */
     private Boolean cacheNullValue = true;
 
     /** 开启缓存值软引用 */

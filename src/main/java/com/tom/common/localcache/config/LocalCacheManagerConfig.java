@@ -30,9 +30,14 @@ import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 本地缓存管理器配置
@@ -89,8 +94,11 @@ public class LocalCacheManagerConfig {
         Binder binder = Binder.get(environment);
         Map<String, String> groupMap = binder.bind(CACHE_GROUP, STRING_MAP).orElseGet(Collections::emptyMap);
 
+        Set<String> validPropertiesNames = getValidPropertiesSet();
+
         // 获取分组及其配置
         Map<String, LocalCacheGroupProperties> groups = new HashMap<>();
+        Predicate<String> groupNamePredicate = Pattern.compile("^[\\w-]+$").asPredicate();
         for (Map.Entry<String, String> entry : groupMap.entrySet()) {
             String[] split = StringUtils.split(entry.getKey(), '.');
             if (split == null || split.length != 2) {
@@ -99,9 +107,18 @@ public class LocalCacheManagerConfig {
             String groupName = split[0];
             String propertyName = split[1];
 
+            // 检查分组名格式
+            if (!groupNamePredicate.test(groupName)) {
+                throw new IllegalArgumentException("分组名只能包含数字、字母、下划线和中划线: " + groupName);
+            }
+
             // 属性名中划线转驼峰
             if (StringUtils.contains(propertyName, '-')) {
                 propertyName = MyStringUtils.kebabCaseToCamelCase(propertyName);
+            }
+
+            if (!validPropertiesNames.contains(propertyName)) {
+                throw new IllegalArgumentException("无效的配置: " + ConfigPrefix.GROUP + "." +entry.getKey());
             }
 
             LocalCacheGroupProperties itemProperties = groups.computeIfAbsent(
@@ -166,6 +183,17 @@ public class LocalCacheManagerConfig {
             }
         }
         return cache;
+    }
+
+    /**
+     * 获取有效的配置名称集合
+     *
+     * @return 有效的配置名称集合
+     */
+    private Set<String> getValidPropertiesSet() {
+        return Arrays.stream(LocalCacheGroupProperties.class.getDeclaredFields())
+                .map(Field::getName)
+                .collect(Collectors.toSet());
     }
 
     /**

@@ -24,7 +24,7 @@ public class LocalCacheGroupProperties {
     /** 缓存组描述，用于显示在缓存管理页面 */
     private String desc;
 
-    /** 是否缓存空值，防止缓存穿透 */
+    /** 是否缓存空值，防止缓存穿透，默认开启 */
     private Boolean cacheNullValue;
 
     /** 开启缓存值软引用 */
