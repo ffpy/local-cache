@@ -55,6 +55,8 @@ public enum CacheGroupAction {
             String query = request.getParameter(PARAM_QUERY);
             boolean regex = Boolean.parseBoolean(request.getParameter(PARAM_REGEX));
 
+            // TODO 分页或限制个数
+
             if (StringUtils.isBlank(query)) {
                 return Response.success(toList(cache.asMap()));
             } else {

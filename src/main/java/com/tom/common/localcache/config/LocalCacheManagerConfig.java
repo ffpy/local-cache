@@ -70,7 +70,7 @@ public class LocalCacheManagerConfig {
      * 本地缓存管理器
      */
     @Bean
-    public LocalCacheManager cacheManager(ConfigurableEnvironment environment, ApplicationContext applicationContext) {
+    public LocalCacheManager localCacheManager(ConfigurableEnvironment environment, ApplicationContext applicationContext) {
         Map<String, LocalCacheGroupProperties> groups = getGroupPropertiesMap(environment);
         groupPropertiesMap = groups;
 
@@ -94,10 +94,9 @@ public class LocalCacheManagerConfig {
         Binder binder = Binder.get(environment);
         Map<String, String> groupMap = binder.bind(CACHE_GROUP, STRING_MAP).orElseGet(Collections::emptyMap);
 
-        Set<String> validPropertiesNames = getValidPropertiesSet();
-
         // 获取分组及其配置
         Map<String, LocalCacheGroupProperties> groups = new HashMap<>();
+        Set<String> validPropertiesNames = getValidPropertiesSet();
         Predicate<String> groupNamePredicate = Pattern.compile("^[\\w-]+$").asPredicate();
         for (Map.Entry<String, String> entry : groupMap.entrySet()) {
             String[] split = StringUtils.split(entry.getKey(), '.');
