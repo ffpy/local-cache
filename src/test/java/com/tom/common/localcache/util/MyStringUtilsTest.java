@@ -1,15 +1,13 @@
 package com.tom.common.localcache.util;
 
 import org.assertj.core.api.Assertions;
-import org.checkerframework.checker.units.qual.A;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
 
-class MyStringUtilsTest {
+public class MyStringUtilsTest {
 
     @Test
-    void kebabCaseToCamelCaseTest() {
+    public void kebabCaseToCamelCaseTest() {
         Assertions.assertThat(MyStringUtils.kebabCaseToCamelCase(null))
                 .isNull();
         Assertions.assertThat(MyStringUtils.kebabCaseToCamelCase(""))
