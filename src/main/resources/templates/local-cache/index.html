@@ -73,12 +73,15 @@
                     <tr>
                         <th style="min-width: 100px">键</th>
                         <th>值</th>
-                        <th>操作</th>
+                        <th style="width: 100px;">操作</th>
                     </tr>
                     <tr v-for="item in cacheData">
                         <td>{{ item.key }}</td>
                         <td>{{ item.value }}</td>
-                        <td><a class="btn btn-danger btn-xs" @click="deleteItem(item.key)">删除</a></td>
+                        <td>
+                            <a class="btn btn-default btn-xs" @click="refreshItem(item.key)">刷新</a>
+                            <a class="btn btn-danger btn-xs" @click="deleteItem(item.key)">删除</a>
+                        </td>
                     </tr>
                 </table>
                 <div>
@@ -210,6 +213,13 @@
                             break;
                         }
                     }
+                });
+            },
+            // 刷新分组中的指定项
+            refreshItem: function (key) {
+                $.getJSON(PATH + '/group' + this.currentGroup + '/refresh?key=' + key, data => {
+                    if (!this.checkResponse(data)) return;
+                    setTimeout(() => this.search(), 100);
                 });
             },
             // 显示分组统计信息

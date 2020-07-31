@@ -1,6 +1,7 @@
 package com.tom.common.localcache.filter;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.tom.common.localcache.ReloadAction;
 import com.tom.common.localcache.config.LocalCacheManagerConfig;
 import com.tom.common.localcache.manager.LocalCacheManager;
@@ -93,17 +94,37 @@ public enum CacheGroupAction {
         }
     },
 
+    /** 刷新指定缓存的值 */
+    REFRESH("refresh") {
+        @Override
+        public Response execute(String group, Cache<Object, Object> cache, HttpServletRequest request) {
+            String key = request.getParameter(PARAM_KEY);
+            if (StringUtils.isBlank(key)) {
+                return Response.error("缺少key参数");
+            }
+
+            if (!(cache instanceof LoadingCache)) {
+                return Response.error("当前分组不支持此操作");
+            }
+
+            LoadingCache<Object, Object> loadingCache = (LoadingCache<Object, Object>) cache;
+            loadingCache.refresh(key);
+
+            return Response.success();
+        }
+    },
+
     /** 重新加载所有数据 */
     RELOAD_ALL("reload-all") {
         @Override
         public Response execute(String group, Cache<Object, Object> cache, HttpServletRequest request) {
             LocalCacheGroupProperties properties = SpringContextUtils.getBean(
                     LocalCacheManagerConfig.class).getGroupProperties(group);
-            LocalCacheManager cacheManager = SpringContextUtils.getBean(LocalCacheManager.class);
             if (properties == null) {
                 return Response.error("找不到分组: " + group);
             }
 
+            LocalCacheManager cacheManager = SpringContextUtils.getBean(LocalCacheManager.class);
             String reloadActionBeanName = properties.getReloadAction();
             ReloadAction<?, ?> reloadAction = Optional.ofNullable(reloadActionBeanName)
                     .filter(StringUtils::isNotBlank)
@@ -116,7 +137,7 @@ public enum CacheGroupAction {
                         }
                     }).orElse(null);
             if (reloadAction == null) {
-                return Response.error("当前分组不支持此动作");
+                return Response.error("当前分组不支持此操作");
             }
             try {
                 cacheManager.reloadAll(group, reloadAction.reload());
