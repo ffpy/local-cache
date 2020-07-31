@@ -3,9 +3,6 @@ package com.tom.common.localcache.cache;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.benmanes.caffeine.cache.Policy;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.cache.support.NullValue;
 
 import java.util.Map;
@@ -26,9 +23,9 @@ class CacheNullValueLoadingCache implements LoadingCache<Object, Object> {
         this.cache = cache;
     }
 
-    @Nullable
+
     @Override
-    public Object get(@NonNull Object key) {
+    public Object get(Object key) {
         Object value = cache.get(key);
         if (value == null) {
             cache.put(key, NullValue.INSTANCE);
@@ -40,18 +37,18 @@ class CacheNullValueLoadingCache implements LoadingCache<Object, Object> {
     }
 
     @Override
-    public @NonNull Map<Object, Object> getAll(@NonNull Iterable<?> keys) {
+    public Map<Object, Object> getAll(Iterable<?> keys) {
         return convertNullValueInMap(cache.getAll(keys));
     }
 
     @Override
-    public void refresh(@NonNull Object key) {
+    public void refresh(Object key) {
         cache.refresh(key);
     }
 
-    @Nullable
+
     @Override
-    public Object getIfPresent(@NonNull Object key) {
+    public Object getIfPresent(Object key) {
         Object value = cache.getIfPresent(key);
         if (value == NullValue.INSTANCE) {
             return null;
@@ -59,9 +56,9 @@ class CacheNullValueLoadingCache implements LoadingCache<Object, Object> {
         return value;
     }
 
-    @Nullable
+
     @Override
-    public Object get(@NonNull Object key, @NonNull Function<? super Object, ?> mappingFunction) {
+    public Object get(Object key, Function<? super Object, ?> mappingFunction) {
         Object value = cache.get(key, mappingFunction);
         if (value == NullValue.INSTANCE) {
             return null;
@@ -70,27 +67,27 @@ class CacheNullValueLoadingCache implements LoadingCache<Object, Object> {
     }
 
     @Override
-    public @NonNull Map<Object, Object> getAllPresent(@NonNull Iterable<?> keys) {
+    public Map<Object, Object> getAllPresent(Iterable<?> keys) {
         return convertNullValueInMap(cache.getAllPresent(keys));
     }
 
     @Override
-    public void put(@NonNull Object key, @NonNull Object value) {
+    public void put(Object key, Object value) {
         cache.put(key, value);
     }
 
     @Override
-    public void putAll(@NonNull Map<?, ?> map) {
+    public void putAll(Map<?, ?> map) {
         cache.putAll(map);
     }
 
     @Override
-    public void invalidate(@NonNull Object key) {
+    public void invalidate(Object key) {
         cache.invalidate(key);
     }
 
     @Override
-    public void invalidateAll(@NonNull Iterable<?> keys) {
+    public void invalidateAll(Iterable<?> keys) {
         cache.invalidateAll(keys);
     }
 
@@ -100,17 +97,17 @@ class CacheNullValueLoadingCache implements LoadingCache<Object, Object> {
     }
 
     @Override
-    public @NonNegative long estimatedSize() {
+    public long estimatedSize() {
         return cache.estimatedSize();
     }
 
     @Override
-    public @NonNull CacheStats stats() {
+    public CacheStats stats() {
         return cache.stats();
     }
 
     @Override
-    public @NonNull ConcurrentMap<Object, Object> asMap() {
+    public ConcurrentMap<Object, Object> asMap() {
         return cache.asMap();
     }
 
@@ -120,7 +117,7 @@ class CacheNullValueLoadingCache implements LoadingCache<Object, Object> {
     }
 
     @Override
-    public @NonNull Policy<Object, Object> policy() {
+    public Policy<Object, Object> policy() {
         return cache.policy();
     }
 

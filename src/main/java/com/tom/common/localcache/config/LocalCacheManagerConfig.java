@@ -23,7 +23,6 @@ import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.ConfigurationPropertyName;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,10 +30,8 @@ import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,9 +52,6 @@ public class LocalCacheManagerConfig {
     private static final Bindable<Map<String, String>> STRING_MAP = Bindable.mapOf(String.class,
             String.class);
 
-    /** 缓存分组名到Caffeine缓存的映射 */
-    private final Map<String, com.github.benmanes.caffeine.cache.Cache<Object, Object>> caffeineCacheMap = new HashMap<>();
-
     @Autowired
     private LocalCacheProperties localCacheProperties;
 
@@ -72,15 +66,14 @@ public class LocalCacheManagerConfig {
         Map<String, LocalCacheGroupProperties> groups = groupPropertiesMap(environment);
 
         LocalCacheManagerImpl cacheManager = new LocalCacheManagerImpl();
-        List<org.springframework.cache.Cache> caches = new ArrayList<>();
+        Map<String, Cache<Object, Object>> caffeineCacheMap = new HashMap<>();
         for (Map.Entry<String, LocalCacheGroupProperties> entry : groups.entrySet()) {
             String groupName = entry.getKey();
             Cache<Object, Object> cache = createCache(applicationContext, entry.getValue());
             caffeineCacheMap.put(groupName, cache);
-            caches.add(new CaffeineCache(groupName, cache, true));
         }
 
-        cacheManager.setCaches(caches);
+        cacheManager.setCaches(caffeineCacheMap);
         return cacheManager;
     }
 
@@ -122,25 +115,6 @@ public class LocalCacheManagerConfig {
         groups.forEach((key, value) -> copyPropertyFromGlobal(value));
 
         return groups;
-    }
-
-    /**
-     * 获取缓存分组Map
-     *
-     * @return 缓存分组Map
-     */
-    public Map<String, Cache<Object, Object>> getCaffeineCacheMap() {
-        return Collections.unmodifiableMap(caffeineCacheMap);
-    }
-
-    /**
-     * 获取指定名称的缓存
-     *
-     * @param name 缓存分组名
-     * @return Caffeine缓存
-     */
-    public com.github.benmanes.caffeine.cache.Cache<Object, Object> getCache(String name) {
-        return caffeineCacheMap.get(name);
     }
 
     /**

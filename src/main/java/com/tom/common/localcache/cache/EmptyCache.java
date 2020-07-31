@@ -3,9 +3,6 @@ package com.tom.common.localcache.cache;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Policy;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
@@ -25,40 +22,39 @@ public class EmptyCache implements Cache<Object, Object> {
         this.cache = cache;
     }
 
-    @Nullable
     @Override
-    public Object getIfPresent(@NonNull Object key) {
+    public Object getIfPresent(Object key) {
         return cache.getIfPresent(key);
     }
 
-    @Nullable
+
     @Override
-    public Object get(@NonNull Object key, @NonNull Function<? super Object, ?> mappingFunction) {
+    public Object get(Object key, Function<? super Object, ?> mappingFunction) {
         return cache.get(key, mappingFunction);
     }
 
     @Override
-    public @NonNull Map<Object, Object> getAllPresent(@NonNull Iterable<?> keys) {
+    public Map<Object, Object> getAllPresent(Iterable<?> keys) {
         return cache.getAllPresent(keys);
     }
 
     @Override
-    public void put(@NonNull Object key, @NonNull Object value) {
+    public void put(Object key, Object value) {
         // 不存入缓存
     }
 
     @Override
-    public void putAll(@NonNull Map<?, ?> map) {
+    public void putAll(Map<?, ?> map) {
         // 不存入缓存
     }
 
     @Override
-    public void invalidate(@NonNull Object key) {
+    public void invalidate(Object key) {
         cache.invalidate(key);
     }
 
     @Override
-    public void invalidateAll(@NonNull Iterable<?> keys) {
+    public void invalidateAll(Iterable<?> keys) {
         cache.invalidateAll(keys);
     }
 
@@ -68,17 +64,17 @@ public class EmptyCache implements Cache<Object, Object> {
     }
 
     @Override
-    public @NonNegative long estimatedSize() {
+    public long estimatedSize() {
         return cache.estimatedSize();
     }
 
     @Override
-    public @NonNull CacheStats stats() {
+    public CacheStats stats() {
         return cache.stats();
     }
 
     @Override
-    public @NonNull ConcurrentMap<Object, Object> asMap() {
+    public ConcurrentMap<Object, Object> asMap() {
         return cache.asMap();
     }
 
@@ -88,7 +84,7 @@ public class EmptyCache implements Cache<Object, Object> {
     }
 
     @Override
-    public @NonNull Policy<Object, Object> policy() {
+    public Policy<Object, Object> policy() {
         return cache.policy();
     }
 }

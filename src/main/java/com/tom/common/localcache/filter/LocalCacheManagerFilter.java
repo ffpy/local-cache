@@ -2,7 +2,7 @@ package com.tom.common.localcache.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
-import com.tom.common.localcache.config.LocalCacheManagerConfig;
+import com.tom.common.localcache.manager.LocalCacheManager;
 import com.tom.common.localcache.properties.LocalCacheManagerProperties;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -55,7 +55,7 @@ public class LocalCacheManagerFilter implements Filter {
     private LocalCacheManagerProperties localCacheManagerProperties;
 
     @Autowired
-    private LocalCacheManagerConfig localCacheManagerConfig;
+    private LocalCacheManager localCacheManager;
 
     @Override
     public void init(FilterConfig filterConfig) {
@@ -124,7 +124,7 @@ public class LocalCacheManagerFilter implements Filter {
      */
     private void processGroupAction(HttpServletRequest request, HttpServletResponse response,
                                     String groupName, String actionName) throws IOException {
-        Cache<Object, Object> cache = localCacheManagerConfig.getCache(groupName);
+        Cache<Object, Object> cache = localCacheManager.getCaffeineCache(groupName);
         boolean prettyPrint = isPrettyPrint(request);
         if (cache == null) {
             write(response, HttpStatus.BAD_REQUEST, "缓存组不存在: " + groupName, prettyPrint);
@@ -161,7 +161,7 @@ public class LocalCacheManagerFilter implements Filter {
         // 对所有分组执行动作并聚合结果
         CacheGroupAction groupAction = CacheGroupAction.of(actionName).orElse(null);
         if (groupAction != null) {
-            Map<String, Cache<Object, Object>> cacheMap = localCacheManagerConfig.getCaffeineCacheMap();
+            Map<String, Cache<Object, Object>> cacheMap = localCacheManager.getCaffeineCacheMap();
             Map<String, Object> resultMap = new HashMap<>(cacheMap.size());
             for (Map.Entry<String, Cache<Object, Object>> entry : cacheMap.entrySet()) {
                 resultMap.put(entry.getKey(), groupAction.execute(entry.getValue(), request));
