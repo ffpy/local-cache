@@ -1,5 +1,6 @@
 package com.tom.common.localcache.filter;
 
+import com.tom.common.localcache.config.LocalCacheManagerConfig;
 import com.tom.common.localcache.util.SpringContextUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,13 +18,14 @@ import java.util.Optional;
  */
 @Getter
 @RequiredArgsConstructor
-public enum GlobalAction implements Action {
+public enum GlobalAction {
 
     /** 列出所有分组 */
     GROUPS("groups") {
         @Override
-        public Result execute(HttpServletRequest request) {
-            return success(SpringContextUtils.getBean("groupPropertiesMap"));
+        public Response execute(HttpServletRequest request) {
+            return Response.success(SpringContextUtils.getBean(LocalCacheManagerConfig.class)
+                    .getGroupPropertiesMap());
         }
     },
 
@@ -59,10 +61,9 @@ public enum GlobalAction implements Action {
     /**
      * 执行动作并返回响应信息
      *
-     * @param cache   要执行动作的缓存
      * @param request Http请求
      * @return 动作响应信息
      */
-    public abstract Result execute(HttpServletRequest request);
+    public abstract Response execute(HttpServletRequest request);
 
 }

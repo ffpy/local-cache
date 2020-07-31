@@ -98,6 +98,10 @@ public class SpringContextUtils implements InitializingBean, ApplicationContextA
         return (T) getApplicationContext().getBean(type);
     }
 
+    public static <T> T getBean(String name, Class<T> type) {
+        return (T) getApplicationContext().getBean(name, type);
+    }
+
     /**
      * 用于在Spring执行setApplicationContext前使用ApplicationContext的场景
      */

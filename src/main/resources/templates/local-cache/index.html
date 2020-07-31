@@ -65,6 +65,7 @@
                     </div>
                     <div class="pull-right">
                         <button type="button" class="btn btn-default" @click="showGroupStats">查看统计信息</button>
+                        <button type="button" class="btn btn-warning" @click="reloadGroup">重新加载此分组</button>
                         <button type="button" class="btn btn-danger" @click="clearGroup">清空此分组</button>
                     </div>
                 </form>
@@ -156,8 +157,8 @@
             // 加载分组列表
             loadGroups: function () {
                 $.getJSON(PATH + '/global/groups', data => {
-                    console.log(data);
-                    this.groups = data;
+                    if (!this.checkResponse(data)) return;
+                    this.groups = data.data;
                 });
             },
             // 搜索分组键
@@ -166,26 +167,33 @@
                     const query = this.query;
                     $.getJSON(PATH + '/group/' + this.currentGroup + '/get',
                         {key: query}, data => {
-                            console.log(data);
-                            if (data === null || data === undefined) {
+                            if (!this.checkResponse(data)) return;
+                            if (data.data === null || data.data === undefined) {
                                 this.cacheData = []
                             } else {
-                                this.cacheData = [{key: query, value: data}];
+                                this.cacheData = [{key: query, value: data.data}];
                             }
                         });
                 } else {
                     $.getJSON(PATH + '/group/' + this.currentGroup + '/list',
                         {query: this.query, regex: this.queryRegex}, data => {
-                            console.log(data);
-                            this.cacheData = data;
+                            if (!this.checkResponse(data)) return;
+                            this.cacheData = data.data;
                         });
                 }
+            },
+            // 重新加载分组数据
+            reloadGroup: function () {
+                $.getJSON(PATH + '/group' + this.currentGroup + '/reload-all', data => {
+                    if (!this.checkResponse(data)) return;
+                    this.search();
+                });
             },
             // 清空分组数据
             clearGroup: function () {
                 if (confirm('是否确认清空' + this.currentGroup + '分组的数据?')) {
                     $.getJSON(PATH + '/group/' + this.currentGroup + '/clear', data => {
-                        console.log(data);
+                        if (!this.checkResponse(data)) return;
                         this.cacheData = [];
                     });
                 }
@@ -193,7 +201,7 @@
             // 删除分组中的指定项
             deleteItem: function (key) {
                 $.getJSON(PATH + '/group' + this.currentGroup + '/delete?key=' + key, data => {
-                    console.log(data);
+                    if (!this.checkResponse(data)) return;
                     for (let i = 0; i < this.cacheData.length; i++) {
                         if (this.cacheData[i].key === key) {
                             this.cacheData.splice(i, 1);
@@ -206,10 +214,22 @@
             showGroupStats: function () {
                 this.groupStatsModelData = {};
                 $.getJSON(PATH + '/group' + this.currentGroup + '/stats', data => {
-                    console.log(data);
-                    this.groupStatsModelData = data;
+                    if (!this.checkResponse(data)) return;
+                    this.groupStatsModelData = data.data;
                     $('#groupStatsModel').modal('show');
                 });
+            },
+            checkResponse: function (data) {
+                console.log(data);
+                if (data === null || data === undefined) {
+                    alert('请求失败！');
+                    return false;
+                }
+                if (data.code !== 0) {
+                    alert(data.data);
+                    return false;
+                }
+                return true;
             }
         },
         created: function () {

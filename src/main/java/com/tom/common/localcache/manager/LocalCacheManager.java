@@ -16,37 +16,45 @@ public interface LocalCacheManager extends CacheManager {
 
     /**
      * 获取设置了CacheLoader的缓存
+     * <p>
+     * 注意：因为缓存实例可能会被替换，所以不要存起来，
+     * 每次都通过此方法来获取最新的实例
      *
-     * @param name 缓存分组名
-     * @param <K>  缓存键
-     * @param <V>  缓存值
+     * @param group 缓存分组名
+     * @param <K>   缓存键
+     * @param <V>   缓存值
      * @return LoadingCache
      * @throws IllegalArgumentException 缓存不存在
      */
-    <K, V> LoadingCache<K, V> getLoadingCache(String name);
+    <K, V> LoadingCache<K, V> getLoadingCache(String group);
 
     /**
      * 获取Caffeine缓存实例
+     * <p>
+     * 注意：因为缓存实例可能会被替换，所以不要存起来，
+     * 每次都通过此方法来获取最新的实例
      *
-     * @param name 缓存分组名
+     * @param group 缓存分组名
      * @return Caffeine缓存
      */
-    com.github.benmanes.caffeine.cache.Cache<Object, Object> getCaffeineCache(String name);
+    <K, V> com.github.benmanes.caffeine.cache.Cache<K, V> getCaffeineCache(String group);
 
     /**
      * 获取Caffeine缓存Map
+     * <p>
+     * 注意：因为缓存实例可能会被替换，所以不要存起来，
+     * 每次都通过此方法来获取最新的实例
      *
      * @return Caffeine缓存Map
      */
     Map<String, Cache<Object, Object>> getCaffeineCacheMap();
 
     /**
-     * 替换同名缓存
+     * 更新指定分组的所有数据为传入的数据
      *
-     * @param name     缓存名
-     * @param newCache 新缓存实例
-     * @return 旧缓存
-     * @throws IllegalArgumentException 找不到同名缓存
+     * @param group 缓存分组名
+     * @param data  新数据
+     * @throws IllegalArgumentException 找不到分组
      */
-    Cache<Object, Object> replaceCache(String name, Cache<Object, Object> newCache);
+    void reloadAll(String group, Map<?, ?> data);
 }

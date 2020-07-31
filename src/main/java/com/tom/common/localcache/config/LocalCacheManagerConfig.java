@@ -58,12 +58,16 @@ public class LocalCacheManagerConfig {
     @Autowired
     private LocalCacheGlobalGroupProperties globalGroupProperties;
 
+    /** 缓存分组配置信息 */
+    private Map<String, LocalCacheGroupProperties> groupPropertiesMap;
+
     /**
      * 本地缓存管理器
      */
     @Bean
     public LocalCacheManager cacheManager(ConfigurableEnvironment environment, ApplicationContext applicationContext) {
-        Map<String, LocalCacheGroupProperties> groups = groupPropertiesMap(environment);
+        Map<String, LocalCacheGroupProperties> groups = getGroupPropertiesMap(environment);
+        groupPropertiesMap = groups;
 
         LocalCacheManagerImpl cacheManager = new LocalCacheManagerImpl();
         Map<String, Cache<Object, Object>> caffeineCacheMap = new HashMap<>();
@@ -80,8 +84,7 @@ public class LocalCacheManagerConfig {
     /**
      * 缓存分组及对应的属性（分组名 -> 分组属性）
      */
-    @Bean
-    public Map<String, LocalCacheGroupProperties> groupPropertiesMap(ConfigurableEnvironment environment) {
+    private Map<String, LocalCacheGroupProperties> getGroupPropertiesMap(ConfigurableEnvironment environment) {
         // 获取所有以local-cache.group开头的配置项
         Binder binder = Binder.get(environment);
         Map<String, String> groupMap = binder.bind(CACHE_GROUP, STRING_MAP).orElseGet(Collections::emptyMap);
@@ -115,6 +118,35 @@ public class LocalCacheManagerConfig {
         groups.forEach((key, value) -> copyPropertyFromGlobal(value));
 
         return groups;
+    }
+
+    /**
+     * 获取缓存分组配置信息Map
+     *
+     * @return 配置信息Map
+     * @throws IllegalStateException 如果还没加载完成
+     */
+    public Map<String, LocalCacheGroupProperties> getGroupPropertiesMap() {
+        if (groupPropertiesMap == null) {
+            throw new IllegalStateException("还没加载完成");
+        }
+        return Collections.unmodifiableMap(groupPropertiesMap);
+    }
+
+    /**
+     * 获取获取执行缓存分组的配置信息
+     *
+     * @param group 分组名称
+     * @return 配置信息
+     * @throws IllegalArgumentException 如果分组不存在
+     * @throws IllegalStateException    如果还没加载完成
+     */
+    public LocalCacheGroupProperties getGroupProperties(String group) {
+        LocalCacheGroupProperties properties = getGroupPropertiesMap().get(group);
+        if (properties == null) {
+            throw new IllegalArgumentException("分组不存在: " + group);
+        }
+        return properties;
     }
 
     /**

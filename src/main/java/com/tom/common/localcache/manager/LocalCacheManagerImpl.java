@@ -1,10 +1,15 @@
 package com.tom.common.localcache.manager;
 
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.tom.common.localcache.cache.CacheFactory;
+import com.tom.common.localcache.config.LocalCacheManagerConfig;
+import com.tom.common.localcache.properties.LocalCacheGroupProperties;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
+import org.springframework.context.ApplicationContext;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -28,6 +33,12 @@ public class LocalCacheManagerImpl implements LocalCacheManager, InitializingBea
     /** 缓存分组名到Caffeine缓存的映射 */
     private Map<String, com.github.benmanes.caffeine.cache.Cache<Object, Object>> cacheMap = Collections.emptyMap();
 
+    @Autowired
+    private LocalCacheManagerConfig localCacheManagerConfig;
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
     /**
      * 设置缓存
      *
@@ -50,12 +61,12 @@ public class LocalCacheManagerImpl implements LocalCacheManager, InitializingBea
 
     @SuppressWarnings("unchecked")
     @Override
-    public <K, V> LoadingCache<K, V> getLoadingCache(String name) {
-        Object cache = Optional.ofNullable(getCache(name))
+    public <K, V> LoadingCache<K, V> getLoadingCache(String group) {
+        Object cache = Optional.ofNullable(getCache(group))
                 .map(Cache::getNativeCache)
-                .orElseThrow(() -> new IllegalArgumentException("没有名为" + name + "的缓存"));
+                .orElseThrow(() -> new IllegalArgumentException("没有名为" + group + "的缓存"));
         if (!(cache instanceof LoadingCache)) {
-            throw new RuntimeException("缓存类型不正确，请配置" + name + "的cache-loader属性");
+            throw new RuntimeException("缓存类型不正确，请配置" + group + "的cache-loader属性");
         }
         return (LoadingCache<K, V>) cache;
     }
@@ -65,9 +76,10 @@ public class LocalCacheManagerImpl implements LocalCacheManager, InitializingBea
         return cacheManager.getCacheNames();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public com.github.benmanes.caffeine.cache.Cache<Object, Object> getCaffeineCache(String name) {
-        return cacheMap.get(name);
+    public <K, V> com.github.benmanes.caffeine.cache.Cache<K, V> getCaffeineCache(String group) {
+        return (com.github.benmanes.caffeine.cache.Cache<K, V>) cacheMap.get(group);
     }
 
     @Override
@@ -76,23 +88,45 @@ public class LocalCacheManagerImpl implements LocalCacheManager, InitializingBea
     }
 
     @Override
-    public com.github.benmanes.caffeine.cache.Cache<Object, Object> replaceCache(
-            String name, com.github.benmanes.caffeine.cache.Cache<Object, Object> newCache) {
-        Objects.requireNonNull(name);
+    public void reloadAll(String group, Map<?, ?> data) {
+        Objects.requireNonNull(data);
+        LocalCacheGroupProperties properties = localCacheManagerConfig.getGroupProperties(group);
+        if (properties == null) {
+            throw new IllegalArgumentException("找不到分组: " + group);
+        }
+        com.github.benmanes.caffeine.cache.Cache<Object, Object> newCache =
+                CacheFactory.createCaffeineCache(properties, applicationContext);
+        newCache.putAll(data);
+        // 替换缓存器并清空旧缓存器的数据
+        replaceCache(group, newCache).invalidateAll();
+    }
+
+    /**
+     * 替换同名缓存器
+     *
+     * @param group    缓存名
+     * @param newCache 新缓存实例
+     * @return 旧缓存器
+     * @throws IllegalArgumentException 找不到同名缓存器
+     */
+    @SuppressWarnings("unchecked")
+    private <K, V> com.github.benmanes.caffeine.cache.Cache<K, V> replaceCache(
+            String group, com.github.benmanes.caffeine.cache.Cache<K, V> newCache) {
+        Objects.requireNonNull(group);
         Objects.requireNonNull(newCache);
 
         // 查找同名缓存
-        com.github.benmanes.caffeine.cache.Cache<Object, Object> oldCache = cacheMap.get(name);
+        com.github.benmanes.caffeine.cache.Cache<Object, Object> oldCache = cacheMap.get(group);
         if (oldCache == null) {
-            throw new IllegalArgumentException("找不到同名缓存: " + name);
+            throw new IllegalArgumentException("找不到同名缓存: " + group);
         }
 
         // TODO 要不要加上同步，防止观察到不一致的状态
-        cacheMap.put(name, newCache);
+        cacheMap.put(group, (com.github.benmanes.caffeine.cache.Cache<Object, Object>) newCache);
         cacheManager.setCaches(getCacheList());
         cacheManager.initializeCaches();
 
-        return oldCache;
+        return (com.github.benmanes.caffeine.cache.Cache<K, V>) oldCache;
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.tom.common.localcache.properties;
 
+import com.tom.common.localcache.ReloadAction;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -52,4 +53,7 @@ public class LocalCacheGroupProperties {
 
     /** {@link com.github.benmanes.caffeine.cache.CacheLoader}的Bean名称 */
     private String cacheLoader;
+
+    /** {@link ReloadAction}的Bean名称 */
+    private String reloadAction;
 }

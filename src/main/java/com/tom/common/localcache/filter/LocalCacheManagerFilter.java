@@ -127,16 +127,16 @@ public class LocalCacheManagerFilter implements Filter {
         Cache<Object, Object> cache = localCacheManager.getCaffeineCache(groupName);
         boolean prettyPrint = isPrettyPrint(request);
         if (cache == null) {
-            write(response, HttpStatus.BAD_REQUEST, "缓存组不存在: " + groupName, prettyPrint);
+            write(response, Response.error("缓存组不存在: " + groupName), prettyPrint);
             return;
         }
         CacheGroupAction action = CacheGroupAction.of(actionName).orElse(null);
         if (action == null) {
-            write(response, HttpStatus.BAD_REQUEST, "不支持的动作: " + actionName, prettyPrint);
+            write(response, Response.error("不支持的动作: " + actionName), prettyPrint);
             return;
         }
-        CacheGroupAction.Result result = action.execute(cache, request);
-        write(response, result.getStatus(), result.getData(), prettyPrint);
+        Response resp = action.execute(groupName, cache, request);
+        write(response, resp, prettyPrint);
     }
 
     /**
@@ -153,8 +153,8 @@ public class LocalCacheManagerFilter implements Filter {
         // 执行全局动作
         GlobalAction globalAction = GlobalAction.of(actionName).orElse(null);
         if (globalAction != null) {
-            Action.Result result = globalAction.execute(request);
-            write(response, result.getStatus(), result.getData(), prettyPrint);
+            Response resp = globalAction.execute(request);
+            write(response, resp, prettyPrint);
             return;
         }
 
@@ -164,31 +164,30 @@ public class LocalCacheManagerFilter implements Filter {
             Map<String, Cache<Object, Object>> cacheMap = localCacheManager.getCaffeineCacheMap();
             Map<String, Object> resultMap = new HashMap<>(cacheMap.size());
             for (Map.Entry<String, Cache<Object, Object>> entry : cacheMap.entrySet()) {
-                resultMap.put(entry.getKey(), groupAction.execute(entry.getValue(), request));
+                resultMap.put(entry.getKey(), groupAction.execute(entry.getKey(), entry.getValue(), request));
             }
-            write(response, HttpStatus.OK, resultMap, prettyPrint);
+            write(response, Response.success(resultMap), prettyPrint);
         } else {
-            write(response, HttpStatus.BAD_REQUEST, "不支持的动作: " + actionName, prettyPrint);
+            write(response, Response.error("不支持的动作: " + actionName), prettyPrint);
         }
     }
 
     /**
      * 以JSON格式输出响应信息到{@link HttpServletResponse}并关闭流
      *
-     * @param response    要输出的Response
-     * @param status      响应码
-     * @param obj         响应数据，会转换为JSON格式输出
-     * @param prettyPrint 是否格式化输出
+     * @param httpResponse 要输出的Response
+     * @param response     响应数据，会转换为JSON格式输出
+     * @param prettyPrint  是否格式化输出
      * @throws IOException IO错误
      */
-    private void write(HttpServletResponse response, HttpStatus status, Object obj, boolean prettyPrint) throws IOException {
-        response.setStatus(status.value());
-        response.setContentType(CONTENT_TYPE_APPLICATION_JSON);
-        PrintWriter writer = response.getWriter();
+    private void write(HttpServletResponse httpResponse, Response response, boolean prettyPrint) throws IOException {
+        httpResponse.setStatus(HttpStatus.OK.value());
+        httpResponse.setContentType(CONTENT_TYPE_APPLICATION_JSON);
+        PrintWriter writer = httpResponse.getWriter();
         if (prettyPrint) {
-            writer.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj));
+            writer.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response));
         } else {
-            writer.println(objectMapper.writeValueAsString(obj));
+            writer.println(objectMapper.writeValueAsString(response));
         }
         writer.flush();
         writer.close();
