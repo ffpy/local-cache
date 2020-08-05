@@ -1,6 +1,5 @@
 package com.tom.common.localcache.properties;
 
-import com.tom.common.localcache.action.ReloadAction;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -54,7 +53,7 @@ public class LocalCacheGroupProperties {
     /** {@link com.github.benmanes.caffeine.cache.CacheLoader}的Bean名称 */
     private String cacheLoader;
 
-    /** {@link ReloadAction}的Bean名称 */
+    /** {@link com.tom.common.localcache.action.ReloadAction}的Bean名称 */
     private String reloadAction;
 
     /** 重新加载所有缓存的Cron表达式，必须同时配置{@link #reloadAction} */
@@ -62,4 +61,10 @@ public class LocalCacheGroupProperties {
 
     /** 是否在启动的时候加载数据 */
     private Boolean reloadOnStart;
+
+    /** {@link com.tom.common.localcache.action.RefreshByUpdateTimeAction}的Bean名称 */
+    private String refreshByUpdateTimeAction;
+
+    /** 增量更新时间间隔（分钟） */
+    private Integer refreshByUpdateTimeInterval;
 }

@@ -50,4 +50,7 @@ public class LocalCacheGlobalGroupProperties {
 
     /** 是否在启动的时候加载数据 */
     private Boolean reloadOnStart;
+
+    /** 增量更新时间间隔（分钟） */
+    private Integer refreshByUpdateTimeInterval = 5;
 }

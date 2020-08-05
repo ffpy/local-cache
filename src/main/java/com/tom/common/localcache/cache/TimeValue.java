@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 @Setter
 @ToString
 @RequiredArgsConstructor
-class TimeValue {
+public class TimeValue {
 
     /** 时间字符串解析表达式 */
     private static final Pattern PATTERN = Pattern.compile("(\\d+)(\\w*)");

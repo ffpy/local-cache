@@ -59,5 +59,4 @@ public class LocalCacheScheduleConfig implements SchedulingConfigurer {
             }
         }
     }
-
 }
