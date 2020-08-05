@@ -50,6 +50,14 @@ public interface LocalCacheManager extends CacheManager {
     Map<String, Cache<Object, Object>> getCaffeineCacheMap();
 
     /**
+     * 更新指定分组的所有数据，数据来源为reload-action的bean
+     *
+     * @param group 缓存分组名
+     * @throws IllegalArgumentException 找不到分组
+     */
+    void reloadAll(String group);
+
+    /**
      * 更新指定分组的所有数据为传入的数据
      *
      * @param group 缓存分组名

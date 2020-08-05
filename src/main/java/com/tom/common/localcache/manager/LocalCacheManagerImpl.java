@@ -1,9 +1,11 @@
 package com.tom.common.localcache.manager;
 
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.tom.common.localcache.ReloadAction;
 import com.tom.common.localcache.cache.CacheFactory;
 import com.tom.common.localcache.config.LocalCacheManagerConfig;
 import com.tom.common.localcache.properties.LocalCacheGroupProperties;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
@@ -34,10 +36,10 @@ public class LocalCacheManagerImpl implements LocalCacheManager, InitializingBea
     private Map<String, com.github.benmanes.caffeine.cache.Cache<Object, Object>> cacheMap = Collections.emptyMap();
 
     @Autowired
-    private LocalCacheManagerConfig localCacheManagerConfig;
+    private LocalCacheManagerConfig cacheManagerConfig;
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private ApplicationContext context;
 
     /**
      * 设置缓存
@@ -88,14 +90,27 @@ public class LocalCacheManagerImpl implements LocalCacheManager, InitializingBea
     }
 
     @Override
+    public void reloadAll(String group) {
+        LocalCacheGroupProperties prop = cacheManagerConfig.getGroupProperties(group);
+        if (prop == null) {
+            throw new IllegalArgumentException("找不到分组: " + group);
+        }
+        if (StringUtils.isBlank(prop.getReloadAction())) {
+            throw new IllegalArgumentException("缓存分组" + group + "的reload-action属性不能为空");
+        }
+        ReloadAction<?, ?> reloadAction = context.getBean(prop.getReloadAction(), ReloadAction.class);
+        reloadAll(group, reloadAction.reload());
+    }
+
+    @Override
     public void reloadAll(String group, Map<?, ?> data) {
         Objects.requireNonNull(data);
-        LocalCacheGroupProperties properties = localCacheManagerConfig.getGroupProperties(group);
-        if (properties == null) {
+        LocalCacheGroupProperties prop = cacheManagerConfig.getGroupProperties(group);
+        if (prop == null) {
             throw new IllegalArgumentException("找不到分组: " + group);
         }
         com.github.benmanes.caffeine.cache.Cache<Object, Object> newCache =
-                CacheFactory.createCaffeineCache(properties, applicationContext);
+                CacheFactory.createCaffeineCache(prop, context);
         newCache.putAll(data);
         // 替换缓存器并清空旧缓存器的数据
         replaceCache(group, newCache).invalidateAll();
