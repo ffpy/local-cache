@@ -1,6 +1,6 @@
 package com.tom.common.localcache.config;
 
-import com.tom.common.localcache.ReloadAction;
+import com.tom.common.localcache.action.ReloadAction;
 import com.tom.common.localcache.manager.LocalCacheManager;
 import lombok.extern.slf4j.Slf4j;
 

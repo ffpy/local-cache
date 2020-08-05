@@ -1,6 +1,6 @@
 package com.tom.common.localcache.service;
 
-import com.tom.common.localcache.ReloadAction;
+import com.tom.common.localcache.action.ReloadAction;
 import com.tom.common.localcache.bean.User1;
 import org.springframework.stereotype.Component;
 

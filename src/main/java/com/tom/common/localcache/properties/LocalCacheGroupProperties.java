@@ -1,6 +1,6 @@
 package com.tom.common.localcache.properties;
 
-import com.tom.common.localcache.ReloadAction;
+import com.tom.common.localcache.action.ReloadAction;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

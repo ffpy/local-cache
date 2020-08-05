@@ -2,7 +2,7 @@ package com.tom.common.localcache.config;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.tom.common.localcache.ReloadAction;
+import com.tom.common.localcache.action.ReloadAction;
 import com.tom.common.localcache.cache.CacheFactory;
 import com.tom.common.localcache.cache.EmptyCache;
 import com.tom.common.localcache.cache.EmptyLoadingCache;
