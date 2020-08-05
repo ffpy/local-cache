@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
-import java.util.Map;
 import java.util.concurrent.Executors;
 
 /**
@@ -47,16 +46,7 @@ public class LocalCacheScheduleConfig implements SchedulingConfigurer {
                     throw new IllegalArgumentException("缓存分组" + group + "的reload-action属性不能为空");
                 }
                 ReloadAction<?, ?> reloadAction = context.getBean(prop.getReloadAction(), ReloadAction.class);
-                taskRegistrar.addCronTask(() -> {
-                    log.info("{} reload all start", group);
-                    Map<?, ?> data = reloadAction.reload();
-                    if (data != null) {
-                        cacheManager.reloadAll(group, data);
-                        log.info("{} reload all end, size: {}", group, data.size());
-                    } else {
-                        log.info("{} reload all fail.", group);
-                    }
-                }, cron);
+                taskRegistrar.addCronTask(new ReloadAllRunnable(cacheManager, group, reloadAction), cron);
                 log.info("cache {} add reload task, cron: {}", group, cron);
                 hasTask.value = true;
             }
@@ -69,4 +59,5 @@ public class LocalCacheScheduleConfig implements SchedulingConfigurer {
             }
         }
     }
+
 }

@@ -44,4 +44,10 @@ public class LocalCacheGlobalGroupProperties {
 
     /** 缓存容量最大值 */
     private Integer maximumSize;
+
+    /** 重新加载所有缓存的Cron表达式，必须同时配置reloadAction */
+    private String reloadCron;
+
+    /** 是否在启动的时候加载数据 */
+    private Boolean reloadOnStart;
 }

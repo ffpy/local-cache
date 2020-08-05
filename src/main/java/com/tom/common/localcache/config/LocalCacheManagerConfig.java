@@ -2,6 +2,7 @@ package com.tom.common.localcache.config;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.tom.common.localcache.ReloadAction;
 import com.tom.common.localcache.cache.CacheFactory;
 import com.tom.common.localcache.cache.EmptyCache;
 import com.tom.common.localcache.cache.EmptyLoadingCache;
@@ -13,6 +14,7 @@ import com.tom.common.localcache.properties.LocalCacheGroupProperties;
 import com.tom.common.localcache.properties.LocalCacheManagerProperties;
 import com.tom.common.localcache.properties.LocalCacheProperties;
 import com.tom.common.localcache.util.MyStringUtils;
+import com.tom.common.localcache.util.SpringContextUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -28,6 +30,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -65,6 +68,24 @@ public class LocalCacheManagerConfig {
 
     /** 缓存分组配置信息 */
     private Map<String, LocalCacheGroupProperties> groupPropertiesMap;
+
+    @PostConstruct
+    public void init() {
+        SpringContextUtils.getApplicationContextAsync(context -> {
+            LocalCacheManager cacheManager = context.getBean(LocalCacheManager.class);
+            getGroupPropertiesMap().forEach((group, prop) -> {
+                // reload-on-start
+                if (prop.getReloadOnStart() == Boolean.TRUE) {
+                    if (StringUtils.isBlank(prop.getReloadAction())) {
+                        throw new IllegalArgumentException("缓存分组" + group + "的reload-action属性不能为空");
+                    }
+
+                    ReloadAction<?, ?> reloadAction = context.getBean(prop.getReloadAction(), ReloadAction.class);
+                    new ReloadAllRunnable(cacheManager, group, reloadAction).run();
+                }
+            });
+        });
+    }
 
     /**
      * 本地缓存管理器
@@ -117,7 +138,7 @@ public class LocalCacheManagerConfig {
             }
 
             if (!validPropertiesNames.contains(propertyName)) {
-                throw new IllegalArgumentException("无效的配置: " + ConfigPrefix.GROUP + "." +entry.getKey());
+                throw new IllegalArgumentException("无效的配置: " + ConfigPrefix.GROUP + "." + entry.getKey());
             }
 
             LocalCacheGroupProperties itemProperties = groups.computeIfAbsent(

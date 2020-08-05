@@ -59,4 +59,7 @@ public class LocalCacheGroupProperties {
 
     /** 重新加载所有缓存的Cron表达式，必须同时配置{@link #reloadAction} */
     private String reloadCron;
+
+    /** 是否在启动的时候加载数据 */
+    private Boolean reloadOnStart;
 }
