@@ -11,7 +11,7 @@ import java.util.Map;
 public interface ReloadAction<K, V> {
 
     /**
-     * 返回重新加载后的缓存数据
+     * 返回重新加载后的缓存数据，如果返回null则不会执行刷新
      *
      * @return 缓存数据（缓存键 -> 缓存值）
      */

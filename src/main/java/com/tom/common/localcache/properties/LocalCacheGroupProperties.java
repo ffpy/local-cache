@@ -56,4 +56,7 @@ public class LocalCacheGroupProperties {
 
     /** {@link ReloadAction}的Bean名称 */
     private String reloadAction;
+
+    /** 重新加载所有缓存的Cron表达式，必须同时配置{@link #reloadAction} */
+    private String reloadCron;
 }

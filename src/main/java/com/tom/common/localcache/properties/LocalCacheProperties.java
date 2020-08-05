@@ -16,6 +16,9 @@ public class LocalCacheProperties {
     /** 全局配置是否启用缓存，设为false则每次都会请求数据，不会存在缓存中 */
     private boolean enable = true;
 
+    /** 定时任务线程池大小，如果值为0则不创建线程池 */
+    private int schedulePoolSize = 4;
+
     /** 缓存分组配置 */
     private Map<String, String> group;
 
