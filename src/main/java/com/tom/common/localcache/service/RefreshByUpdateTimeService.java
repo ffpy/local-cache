@@ -116,13 +116,13 @@ public class RefreshByUpdateTimeService {
             log.info("{} refresh by update time start", group);
             Date timeBound = Date.from(LocalDateTime.now().minusMinutes(interval + 1)
                     .atZone(ZONE_ID).toInstant());
-            Map<?, ? extends RefreshByUpdateTimeAction.Value<?>> data = action.load(timeBound);
+            Map<?, ?> data = action.load(timeBound);
             Cache<Object, Object> cache = cacheManager.getCaffeineCache(group);
             data.forEach((k, v) -> {
-                if (!v.isStatus()) {
+                if (v == null) {
                     cache.invalidate(k);
                 } else {
-                    cache.put(k, v.getValue());
+                    cache.put(k, v);
                 }
             });
             log.info("{} refresh by update time end, size: {}", group, data.size());
