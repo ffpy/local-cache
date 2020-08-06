@@ -1,7 +1,8 @@
 package com.tom.common.localcache.cache;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
@@ -9,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,7 +33,7 @@ import java.util.regex.Pattern;
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
+@EqualsAndHashCode
 public class TimeValue {
 
     /** 时间字符串解析表达式 */
@@ -57,6 +59,7 @@ public class TimeValue {
     private final int value;
 
     /** 时间单位 */
+    @NonNull
     private final TimeUnit unit;
 
     /**
@@ -81,5 +84,13 @@ public class TimeValue {
         }
 
         return new TimeValue(value, unit);
+    }
+
+    public TimeValue(int value, TimeUnit unit) {
+        if (value < 0) {
+            throw new IllegalArgumentException("value必须不小于0");
+        }
+        this.value = value;
+        this.unit = Objects.requireNonNull(unit);
     }
 }

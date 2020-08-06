@@ -2,6 +2,7 @@ package com.tom.common.localcache.service;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.tom.common.localcache.action.RefreshByUpdateTimeAction;
+import com.tom.common.localcache.cache.TimeValue;
 import com.tom.common.localcache.config.LocalCacheManagerConfig;
 import com.tom.common.localcache.constant.ConfigPrefix;
 import com.tom.common.localcache.helper.NacosConfigHelper;
@@ -23,7 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -47,7 +47,7 @@ public class RefreshByUpdateTimeService {
     private final Map<String, ScheduledExecutorService> executorMap = new HashMap<>();
 
     /** 分组名 -> 刷新时间 */
-    private final Map<String, Integer> refreshIntervalMap = new HashMap<>();
+    private final Map<String, TimeValue> refreshIntervalMap = new HashMap<>();
 
     /** 分组名 -> 刷新动作 */
     private final Map<String, RefreshByUpdateTimeAction<?, ?>> actionMap = new HashMap<>();
@@ -56,10 +56,7 @@ public class RefreshByUpdateTimeService {
     public void init() {
         cacheManagerConfig.getGroupPropertiesMap().forEach((group, prop) -> {
             if (StringUtils.isNotBlank(prop.getRefreshByUpdateTimeAction())) {
-                if (prop.getRefreshByUpdateTimeInterval() <= 0) {
-                    throw new IllegalArgumentException("refreshByUpdateTimeInterval必须大于0");
-                }
-                refreshIntervalMap.put(group, prop.getRefreshByUpdateTimeInterval());
+                refreshIntervalMap.put(group, TimeValue.parse(prop.getRefreshByUpdateTimeInterval()));
 
                 RefreshByUpdateTimeAction<?, ?> action = context.getBean(prop.getRefreshByUpdateTimeAction(),
                         RefreshByUpdateTimeAction.class);
@@ -87,9 +84,9 @@ public class RefreshByUpdateTimeService {
                             if (intervalValue == null) {
                                 continue;
                             }
-                            int interval = Integer.parseInt(String.valueOf(intervalValue));
-                            if (interval > 0) {
-                                Integer oldInterval = refreshIntervalMap.get(group);
+                            TimeValue interval = TimeValue.parse(String.valueOf(intervalValue));
+                            if (interval.getValue() > 0) {
+                                TimeValue oldInterval = refreshIntervalMap.get(group);
                                 if (!Objects.equals(oldInterval, interval)) {
                                     log.info("update {}={}", name, interval);
                                     refreshIntervalMap.put(group, interval);
@@ -110,11 +107,14 @@ public class RefreshByUpdateTimeService {
     private void startGroupRefresh(String group) {
         ScheduledExecutorService executor = getNewExecutor(group);
         RefreshByUpdateTimeAction<?, ?> action = Objects.requireNonNull(actionMap.get(group));
-        Integer interval = refreshIntervalMap.get(group);
+        TimeValue interval = refreshIntervalMap.get(group);
 
+        int intervalValue = Math.max(interval.getValue(), 1);
         executor.scheduleAtFixedRate(() -> {
             log.info("{} refresh by update time start", group);
-            Date timeBound = Date.from(LocalDateTime.now().minusMinutes(interval + 1)
+            // +1用于防止因定时任务的延时而导致有数据没有扫描到
+            Date timeBound = Date.from(LocalDateTime.now().minusMinutes(
+                    interval.getUnit().toMinutes(interval.getValue()) + 1)
                     .atZone(ZONE_ID).toInstant());
             Map<?, ?> data = action.load(timeBound);
             Cache<Object, Object> cache = cacheManager.getCaffeineCache(group);
@@ -126,7 +126,7 @@ public class RefreshByUpdateTimeService {
                 }
             });
             log.info("{} refresh by update time end, size: {}", group, data.size());
-        }, interval, interval, TimeUnit.MINUTES);
+        }, intervalValue, intervalValue, interval.getUnit());
     }
 
     private ScheduledExecutorService getNewExecutor(String group) {

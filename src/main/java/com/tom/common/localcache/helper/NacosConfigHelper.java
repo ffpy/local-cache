@@ -67,7 +67,14 @@ public class NacosConfigHelper implements InitializingBean {
                     Properties oldProp = properties;
                     properties = prop;
                     synchronized (listeners) {
-                        listeners.forEach(listener -> listener.onChanged(oldProp, prop));
+                        listeners.forEach(listener -> {
+                            try {
+                                listener.onChanged(oldProp, prop);
+                            } catch (Exception e) {
+                                // 捕获异常，防止影响到下一个监听器
+                                log.error(e.getMessage(), e);
+                            }
+                        });
                     }
                 } catch (IOException e) {
                     log.error("读取nacos配置失败", e);

@@ -65,6 +65,6 @@ public class LocalCacheGroupProperties {
     /** {@link com.tom.common.localcache.action.RefreshByUpdateTimeAction}的Bean名称 */
     private String refreshByUpdateTimeAction;
 
-    /** 增量更新时间间隔（分钟） */
-    private Integer refreshByUpdateTimeInterval;
+    /** 增量更新时间间隔 */
+    private String refreshByUpdateTimeInterval;
 }

@@ -52,5 +52,5 @@ public class LocalCacheGlobalGroupProperties {
     private Boolean reloadOnStart;
 
     /** 增量更新时间间隔（分钟） */
-    private Integer refreshByUpdateTimeInterval = 5;
+    private String refreshByUpdateTimeInterval = "5m";
 }
