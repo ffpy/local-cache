@@ -15,6 +15,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -102,6 +103,11 @@ public class RefreshByUpdateTimeService {
                 }
             }
         });
+    }
+
+    @PreDestroy
+    public void destroy() {
+        executorMap.forEach((k, v) -> v.shutdownNow());
     }
 
     private void startGroupRefresh(String group) {
