@@ -83,7 +83,11 @@ public class RefreshByUpdateTimeService {
                     String key = MyStringUtils.kebabCaseToCamelCase(split[1]);
                     if ("refreshByUpdateTimeInterval".equals(key)) {
                         try {
-                            int interval = Integer.parseInt(String.valueOf(prop.get(name)));
+                            Object intervalValue = prop.get(name);
+                            if (intervalValue == null) {
+                                continue;
+                            }
+                            int interval = Integer.parseInt(String.valueOf(intervalValue));
                             if (interval > 0) {
                                 Integer oldInterval = refreshIntervalMap.get(group);
                                 if (!Objects.equals(oldInterval, interval)) {
