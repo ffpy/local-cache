@@ -11,6 +11,7 @@ import com.tom.common.localcache.util.MyStringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
 @Service
+@ConditionalOnBean(NacosConfigHelper.class)
 public class RefreshByUpdateTimeService {
 
     private static final ZoneId ZONE_ID = ZoneId.systemDefault();
@@ -122,8 +124,9 @@ public class RefreshByUpdateTimeService {
             Date timeBound = Date.from(LocalDateTime.now().minusMinutes(
                     interval.getUnit().toMinutes(interval.getValue()) + 1)
                     .atZone(ZONE_ID).toInstant());
-            Map<?, ?> data = action.load(timeBound);
             Cache<Object, Object> cache = cacheManager.getCaffeineCache(group);
+            //noinspection unchecked,rawtypes
+            Map<?, ?> data = action.load(timeBound, (Cache) cache);
             data.forEach((k, v) -> {
                 if (v == null) {
                     cache.invalidate(k);
