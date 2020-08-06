@@ -43,10 +43,13 @@ public class RefreshByUpdateTimeService {
     @Autowired
     private LocalCacheManagerConfig cacheManagerConfig;
 
+    /** 分组名 -> 调度服务 */
     private final Map<String, ScheduledExecutorService> executorMap = new HashMap<>();
 
+    /** 分组名 -> 刷新时间 */
     private final Map<String, Integer> refreshIntervalMap = new HashMap<>();
 
+    /** 分组名 -> 刷新动作 */
     private final Map<String, RefreshByUpdateTimeAction<?, ?>> actionMap = new HashMap<>();
 
     @PostConstruct
@@ -84,6 +87,7 @@ public class RefreshByUpdateTimeService {
                             if (interval > 0) {
                                 Integer oldInterval = refreshIntervalMap.get(group);
                                 if (!Objects.equals(oldInterval, interval)) {
+                                    log.info("update {}={}", name, interval);
                                     refreshIntervalMap.put(group, interval);
                                     startGroupRefresh(group);
                                 }
@@ -100,16 +104,10 @@ public class RefreshByUpdateTimeService {
     }
 
     private void startGroupRefresh(String group) {
-        ScheduledExecutorService oldExecutor = executorMap.get(group);
-        if (oldExecutor != null) {
-            oldExecutor.shutdownNow();
-        }
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executorMap.put(group, executor);
-
+        ScheduledExecutorService executor = getNewExecutor(group);
         RefreshByUpdateTimeAction<?, ?> action = Objects.requireNonNull(actionMap.get(group));
-
         Integer interval = refreshIntervalMap.get(group);
+
         executor.scheduleAtFixedRate(() -> {
             log.info("{} refresh by update time start", group);
             Date timeBound = Date.from(LocalDateTime.now().minusMinutes(interval + 1)
@@ -124,8 +122,16 @@ public class RefreshByUpdateTimeService {
                 }
             });
             log.info("{} refresh by update time end, size: {}", group, data.size());
-            // TODO
-//        }, interval, interval, TimeUnit.MINUTES);
-        }, interval, interval, TimeUnit.SECONDS);
+        }, interval, interval, TimeUnit.MINUTES);
+    }
+
+    private ScheduledExecutorService getNewExecutor(String group) {
+        ScheduledExecutorService oldExecutor = executorMap.get(group);
+        if (oldExecutor != null) {
+            oldExecutor.shutdownNow();
+        }
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        executorMap.put(group, executor);
+        return executor;
     }
 }

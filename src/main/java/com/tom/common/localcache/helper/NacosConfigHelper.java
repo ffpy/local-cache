@@ -6,7 +6,10 @@ import com.alibaba.nacos.api.config.listener.AbstractListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -15,7 +18,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.function.Consumer;
 
 /**
  * 用于读取和监听Nacos的配置
@@ -23,7 +25,9 @@ import java.util.function.Consumer;
  * @author 温龙盛
  * @date 2020/7/31 9:08
  */
+@Component
 @Slf4j
+@ConditionalOnProperty("nacos.dataId")
 public class NacosConfigHelper implements InitializingBean {
 
     private final String dataId;
@@ -38,12 +42,13 @@ public class NacosConfigHelper implements InitializingBean {
 
     private final List<Listener> listeners = new LinkedList<>();
 
-    public NacosConfigHelper(String dataId, String group) {
+    public NacosConfigHelper(@Value("${nacos.dataId}") String dataId,
+                             @Value("${nacos.group:DEFAULT_GROUP}") String group) {
         if (StringUtils.isBlank(dataId)) {
-            throw new IllegalArgumentException("dataId不能为空");
+            throw new IllegalArgumentException("nacos.dataId不能为空");
         }
         if (StringUtils.isBlank(group)) {
-            throw new IllegalArgumentException("group不能为空");
+            throw new IllegalArgumentException("nacos.group不能为空");
         }
         this.dataId = dataId;
         this.group = group;
@@ -79,23 +84,23 @@ public class NacosConfigHelper implements InitializingBean {
             listeners.add(Objects.requireNonNull(listener));
         }
         if (properties != null) {
-            listener.onChanged(properties, properties);
+            listener.onChanged(null, properties);
         }
     }
 
-    /**
-     * 获取Properties中指定键的值
-     *
-     * @param prop {@link Properties}
-     * @param key  键名
-     * @return 值，如果不存在则为null
-     */
-    private String getValue(Properties prop, String key) {
-        return Optional.ofNullable(prop)
-                .map(it -> it.getProperty(key))
-                .map(String::trim)
-                .orElse(null);
-    }
+//    /**
+//     * 获取Properties中指定键的值
+//     *
+//     * @param prop {@link Properties}
+//     * @param key  键名
+//     * @return 值，如果不存在则为null
+//     */
+//    private String getValue(Properties prop, String key) {
+//        return Optional.ofNullable(prop)
+//                .map(it -> it.getProperty(key))
+//                .map(String::trim)
+//                .orElse(null);
+//    }
 
     /**
      * 监听器接口

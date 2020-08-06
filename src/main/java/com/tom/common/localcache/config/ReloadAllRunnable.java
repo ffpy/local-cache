@@ -11,7 +11,7 @@ import java.util.Map;
  * @date 2020/8/5 16:49
  */
 @Slf4j
-class ReloadAllRunnable implements Runnable {
+public class ReloadAllRunnable implements Runnable {
     private final LocalCacheManager cacheManager;
     private final String group;
     private final ReloadAction<?, ?> reloadAction;

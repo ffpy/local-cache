@@ -14,7 +14,6 @@ public class User1RefreshByUpdateTimeAction implements RefreshByUpdateTimeAction
 
     @Override
     public Map<String, Value<User1>> load(Date timeBound) {
-        System.out.println("timeBound: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(timeBound));
         HashMap<String, Value<User1>> map = new HashMap<>();
         map.put("reload_user1", new Value<>(new User1("reload_user1"), true));
         map.put("reload_user2", new Value<>(new User1("reload_user2"), false));
