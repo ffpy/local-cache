@@ -3,6 +3,7 @@ package com.tom.common.localcache.service;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.tom.common.localcache.action.RefreshByUpdateTimeAction;
 import com.tom.common.localcache.cache.TimeValue;
+import com.tom.common.localcache.cache.UnmodifiableCache;
 import com.tom.common.localcache.config.LocalCacheManagerConfig;
 import com.tom.common.localcache.constant.ConfigPrefix;
 import com.tom.common.localcache.helper.NacosConfigHelper;
@@ -126,7 +127,7 @@ public class RefreshByUpdateTimeService {
                     .atZone(ZONE_ID).toInstant());
             Cache<Object, Object> cache = cacheManager.getCaffeineCache(group);
             //noinspection unchecked,rawtypes
-            Map<?, ?> data = action.load(timeBound, (Cache) cache);
+            Map<?, ?> data = action.load(timeBound, new UnmodifiableCache(cache));
             data.forEach((k, v) -> {
                 if (v == null) {
                     cache.invalidate(k);
