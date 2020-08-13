@@ -84,10 +84,8 @@ public class LocalCacheManagerConfig {
         for (Map.Entry<String, LocalCacheGroupProperties> entry : groups.entrySet()) {
             String groupName = entry.getKey();
             LocalCacheGroupProperties prop = entry.getValue();
-            if (prop.isEnable()) {
-                Cache<Object, Object> cache = createCache(applicationContext, prop);
-                caffeineCacheMap.put(groupName, cache);
-            }
+            Cache<Object, Object> cache = createCache(applicationContext, prop);
+            caffeineCacheMap.put(groupName, cache);
         }
 
         cacheManager.setCaches(caffeineCacheMap);
@@ -140,6 +138,9 @@ public class LocalCacheManagerConfig {
 
         // 处理全局配置
         groups.forEach((key, value) -> copyPropertyFromGlobal(value));
+
+        // 去掉没启用的缓存
+        groups.entrySet().removeIf(it -> !it.getValue().isEnable());
 
         return groups;
     }
