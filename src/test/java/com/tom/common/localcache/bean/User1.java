@@ -15,6 +15,7 @@ import java.util.Objects;
 public class User1 {
     private String username;
     private String time = LocalDateTime.now().toString();
+    private LocalDateTime other = LocalDateTime.now();
 
     public User1(String username) {
         this.username = username;

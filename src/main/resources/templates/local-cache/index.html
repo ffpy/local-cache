@@ -17,6 +17,9 @@
         td {
             word-break: break-all;
         }
+        .item-value {
+
+        }
     </style>
 </head>
 <body>
@@ -73,12 +76,13 @@
                     <tr>
                         <th style="min-width: 100px">键</th>
                         <th>值</th>
-                        <th style="width: 100px;">操作</th>
+                        <th style="width: 140px;">操作</th>
                     </tr>
                     <tr v-for="item in cacheData">
                         <td>{{ item.key }}</td>
-                        <td>{{ item.value }}</td>
-                        <td>
+                        <td class="item-value">{{ item.value }}</td>
+                        <td style="text-align: center">
+                            <a class="btn btn-default btn-xs" @click="viewItem(item.key)">查看</a>
                             <a class="btn btn-default btn-xs" @click="refreshItem(item.key)">刷新</a>
                             <a class="btn btn-danger btn-xs" @click="deleteItem(item.key)">删除</a>
                         </td>
@@ -91,7 +95,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="groupStatsModel" tabindex="-1" role="dialog">
+    <div class="modal fade" id="groupStatsModal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -111,6 +115,25 @@
                         </tr>
                     </table>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">确定</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="viewItemModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">{{ viewItemTitle }}</h4>
+                </div>
+                <div class="modal-body" v-html="viewItemContent"></div>
+<!--                <div class="modal-body" style="white-space: pre-wrap">-->
+<!--                    {{ viewItemContent }}-->
+<!--                </div>-->
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">确定</button>
                 </div>
@@ -141,7 +164,11 @@
             // 缓存表格数据
             cacheData: [],
             // 分组统计信息模态框数据
-            groupStatsModelData: {}
+            groupStatsModelData: {},
+            // 查看缓存值模态框标题
+            viewItemTitle: '',
+            // 查看缓存值模态框内容
+            viewItemContent: '',
         },
         computed: {
             cacheDataSize: function () {
@@ -215,6 +242,21 @@
                     }
                 });
             },
+            // 查看分组中的指定项
+            viewItem: function (key) {
+                if (key === '') return;
+                this.viewItemTitle = '';
+                this.viewItemContent = '';
+                $.getJSON(PATH + '/group/' + this.currentGroup + '/get',
+                    {key: key}, data => {
+                        if (!this.checkResponse(data)) return;
+                        this.viewItemTitle = key;
+                        this.viewItemContent = JSON.stringify(data.data, null, 2)
+                            .replace(/\n/g, '<br>')
+                            .replace(/ /g, '&nbsp;');
+                        $('#viewItemModal').modal('show');
+                    });
+            },
             // 刷新分组中的指定项
             refreshItem: function (key) {
                 $.getJSON(PATH + '/group' + this.currentGroup + '/refresh?key=' + key, data => {
@@ -228,7 +270,7 @@
                 $.getJSON(PATH + '/group' + this.currentGroup + '/stats', data => {
                     if (!this.checkResponse(data)) return;
                     this.groupStatsModelData = data.data;
-                    $('#groupStatsModel').modal('show');
+                    $('#groupStatsModal').modal('show');
                 });
             },
             checkResponse: function (data) {

@@ -19,7 +19,7 @@ public class User1ReloadAction implements ReloadAction<String, User1> {
         Map<String, User1> map = new HashMap<>();
         map.put("reload_user1", new User1("abc"));
         map.put("reload_user2", new User1("def"));
-        map.put("reload_user3", new User1("123"));
+        map.put("reload_user3", new User1("<123>"));
         return map;
     }
 }

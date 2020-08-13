@@ -1,5 +1,7 @@
 package com.tom.common.localcache.filter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.tom.common.localcache.action.ReloadAction;
@@ -41,6 +43,7 @@ public enum CacheGroupAction {
         @Override
         public Response execute(String group, Cache<Object, Object> cache, HttpServletRequest request) {
             String key = request.getParameter(PARAM_KEY);
+
             if (StringUtils.isBlank(key)) {
                 return Response.error("缺少key参数");
             }
@@ -54,11 +57,16 @@ public enum CacheGroupAction {
         public Response execute(String group, Cache<Object, Object> cache, HttpServletRequest request) {
             String query = request.getParameter(PARAM_QUERY);
             boolean regex = Boolean.parseBoolean(request.getParameter(PARAM_REGEX));
+            int page = getIntParam(request.getParameter(PARAM_PAGE))
+                    .map(it -> Math.max(it, 1))
+                    .orElse(1);
+            int size = getIntParam(request.getParameter(PARAM_SIZE))
+                    .map(it -> Math.max(it, 1))
+                    .orElse(DEFAULT_PAGE_SIZE);
 
-            // TODO 分页或限制个数
-
+            List<Item> result;
             if (StringUtils.isBlank(query)) {
-                return Response.success(toList(cache.asMap()));
+                result = toList(cache.asMap());
             } else {
                 Map<Object, Object> map = new HashMap<>(cache.asMap());
                 if (regex) {
@@ -67,13 +75,19 @@ public enum CacheGroupAction {
                 } else {
                     map.entrySet().removeIf(entry -> !String.valueOf(entry.getKey()).contains(query));
                 }
-                return Response.success(toList(map));
+                result = toList(map);
             }
+
+            // TODO 分页
+            
+
+            return Response.success(result);
         }
 
         private List<Item> toList(Map<?, ?> map) {
+            ObjectMapper objectMapper = SpringContextUtils.getBean(ObjectMapper.class);
             return map.entrySet().stream()
-                    .map(entry -> new Item(entry.getKey(), entry.getValue()))
+                    .map(entry -> new Item(entry.getKey(), formatMaxValue(objectMapper, entry.getValue())))
                     .collect(Collectors.toList());
         }
     },
@@ -163,7 +177,18 @@ public enum CacheGroupAction {
     ;
     private static final String PARAM_REGEX = "regex";
     private static final String PARAM_QUERY = "query";
+    private static final String PARAM_PAGE = "page";
+    private static final String PARAM_SIZE = "size";
     private static final String PARAM_KEY = "key";
+
+    /** 默认分页大小 */
+    private static final int DEFAULT_PAGE_SIZE = 50;
+
+    /** {@link #LIST}返回内容的最大长度 */
+    private static final int MAX_VALUE_LENGTH = 200;
+
+    /** {@link #LIST}超出最大长度后的后缀 */
+    private static final String MAX_VALUE_END = "...";
 
     /** 动作名到动作的映射 */
     private static Map<String, CacheGroupAction> actionMap;
@@ -201,6 +226,48 @@ public enum CacheGroupAction {
      * @return 动作响应信息
      */
     public abstract Response execute(String group, Cache<Object, Object> cache, HttpServletRequest request);
+
+    /**
+     * 格式化内容的最大长度
+     *
+     * @param objectMapper ObjectMapper
+     * @param value        要格式化的值
+     * @return 格式化后的值，如果格式化失败返回原值
+     */
+    private static Object formatMaxValue(ObjectMapper objectMapper, Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            String valueStr = objectMapper.writeValueAsString(value);
+            if (valueStr.length() + MAX_VALUE_END.length() > MAX_VALUE_LENGTH) {
+                valueStr = valueStr.substring(0, MAX_VALUE_LENGTH - MAX_VALUE_END.length()) + MAX_VALUE_END;
+            }
+            return valueStr;
+        } catch (JsonProcessingException e) {
+            log.error(e.getMessage(), e);
+            return value;
+        }
+    }
+
+    /**
+     * 字符串转整型
+     *
+     * @param value 字符串
+     * @return 数字，字符串为空或格式不正确返回{@link Optional#empty()}
+     */
+    private static Optional<Integer> getIntParam(String value) {
+        return Optional.ofNullable(value)
+                .filter(StringUtils::isNotBlank)
+                .map(it -> {
+                    try {
+                        return Integer.parseInt(it);
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                    }
+                    return null;
+                });
+    }
 
     @Data
     @AllArgsConstructor
