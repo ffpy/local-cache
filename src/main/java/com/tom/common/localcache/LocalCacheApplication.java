@@ -6,8 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-// TODO 测试
-@NacosPropertySource(dataId = "account", autoRefreshed = true)
+//@NacosPropertySource(dataId = "account", autoRefreshed = true)
 @EnableScheduling
 public class LocalCacheApplication {
 

@@ -7,6 +7,7 @@ import com.tom.common.localcache.properties.LocalCacheProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
@@ -22,6 +23,7 @@ import java.util.concurrent.Executors;
  */
 @Slf4j
 @Configuration
+@ConditionalOnProperty(value = "local-cache.manager.enable", matchIfMissing = true)
 public class LocalCacheScheduleConfig implements SchedulingConfigurer {
 
     @Autowired

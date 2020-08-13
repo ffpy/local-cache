@@ -18,6 +18,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -50,7 +51,11 @@ import java.util.stream.Collectors;
         LocalCacheGlobalGroupProperties.class,
         LocalCacheManagerProperties.class,
 })
+@ConditionalOnProperty(value = "local-cache.manager.enable", matchIfMissing = true)
 public class LocalCacheManagerConfig {
+
+    /** 本地缓存管理器Bean名称 */
+    public static final String BEAN_NAME = "localCacheManager";
 
     private static final ConfigurationPropertyName CACHE_GROUP = ConfigurationPropertyName.of(ConfigPrefix.GROUP);
 
@@ -69,7 +74,7 @@ public class LocalCacheManagerConfig {
     /**
      * 本地缓存管理器
      */
-    @Bean
+    @Bean(name = BEAN_NAME)
     public LocalCacheManager localCacheManager(ConfigurableEnvironment environment, ApplicationContext applicationContext) {
         Map<String, LocalCacheGroupProperties> groups = getGroupPropertiesMap(environment);
         groupPropertiesMap = groups;
@@ -78,8 +83,11 @@ public class LocalCacheManagerConfig {
         Map<String, Cache<Object, Object>> caffeineCacheMap = new HashMap<>();
         for (Map.Entry<String, LocalCacheGroupProperties> entry : groups.entrySet()) {
             String groupName = entry.getKey();
-            Cache<Object, Object> cache = createCache(applicationContext, entry.getValue());
-            caffeineCacheMap.put(groupName, cache);
+            LocalCacheGroupProperties prop = entry.getValue();
+            if (prop.isEnable()) {
+                Cache<Object, Object> cache = createCache(applicationContext, prop);
+                caffeineCacheMap.put(groupName, cache);
+            }
         }
 
         cacheManager.setCaches(caffeineCacheMap);
@@ -174,7 +182,7 @@ public class LocalCacheManagerConfig {
      */
     private Cache<Object, Object> createCache(ApplicationContext applicationContext, LocalCacheGroupProperties properties) {
         Cache<Object, Object> cache = CacheFactory.createCaffeineCache(properties, applicationContext);
-        if (isGroupDisable(properties)) {
+        if (isGroupDebug(properties)) {
             if (cache instanceof LoadingCache) {
                 cache = new EmptyLoadingCache((LoadingCache<Object, Object>) cache);
             } else {
@@ -196,13 +204,13 @@ public class LocalCacheManagerConfig {
     }
 
     /**
-     * 判断指定分组是否不启用缓存
+     * 判断指定分组是否开启调试
      *
      * @param properties 分组属性
-     * @return true为不启用，false为启用
+     * @return true为启用，false反之
      */
-    private boolean isGroupDisable(LocalCacheGroupProperties properties) {
-        return !localCacheProperties.isEnable() || !properties.isEnable();
+    private boolean isGroupDebug(LocalCacheGroupProperties properties) {
+        return localCacheProperties.isDebug() || properties.isDebug();
     }
 
     /**

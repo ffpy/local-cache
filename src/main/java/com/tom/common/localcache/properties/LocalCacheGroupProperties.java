@@ -17,8 +17,11 @@ import lombok.ToString;
 @ToString
 public class LocalCacheGroupProperties {
 
-    /** 是否启用缓存，设为false则每次都会请求数据，不会存在缓存中 */
+    /** 是否启用缓存 */
     private boolean enable = true;
+
+    /** 是否开启调试模式，设为true则每次都会请求数据，不会存在缓存中 */
+    private boolean debug;
 
     /** 缓存组描述，用于显示在缓存管理页面 */
     private String desc;

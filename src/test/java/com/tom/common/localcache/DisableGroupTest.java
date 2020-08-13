@@ -17,7 +17,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {
-        "local-cache.group.user1.enable=false",
+        "local-cache.group.user1.debug=true",
 })
 public class DisableGroupTest {
 
