@@ -29,7 +29,7 @@ import java.util.function.Consumer;
  */
 @Component
 @Slf4j
-@ConditionalOnProperty("nacos-config-helper.dataId")
+@ConditionalOnProperty("local-cache.nacos.dataId")
 public class NacosConfigHelper implements InitializingBean {
 
     private final String dataId;
@@ -44,13 +44,13 @@ public class NacosConfigHelper implements InitializingBean {
 
     private final List<Listener> listeners = new LinkedList<>();
 
-    public NacosConfigHelper(@Value("${nacos-config-helper.dataId}") String dataId,
-                             @Value("${nacos-config-helper.group:DEFAULT_GROUP}") String group) {
+    public NacosConfigHelper(@Value("${local-cache.nacos.dataId}") String dataId,
+                             @Value("${local-cache.nacos.group:DEFAULT_GROUP}") String group) {
         if (StringUtils.isBlank(dataId)) {
-            throw new IllegalArgumentException("nacos-config-helper.dataId不能为空");
+            throw new IllegalArgumentException("local-cache.nacos.dataId不能为空");
         }
         if (StringUtils.isBlank(group)) {
-            throw new IllegalArgumentException("nacos-config-helper.group不能为空");
+            throw new IllegalArgumentException("local-cache.nacos.group不能为空");
         }
         this.dataId = dataId;
         this.group = group;
