@@ -41,7 +41,7 @@ public class LocalCacheGroupProperties {
     /** 访问过期时间 */
     private String expireAfterAccess;
 
-    /** 写入刷新时间，如果配置了此项，则必须也要配置classLoader属性 */
+    /** 写入刷新时间，如果配置了此项，则必须也要配置cacheLoader属性 */
     private String refreshAfterWrite;
 
     /** 缓存容量初始值 */
