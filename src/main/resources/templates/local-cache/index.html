@@ -17,6 +17,7 @@
         td {
             word-break: break-all;
         }
+
         .item-value {
 
         }
@@ -72,7 +73,7 @@
                         <button type="button" class="btn btn-danger" @click="clearGroup">清空此分组</button>
                     </div>
                 </form>
-                <table class="table table-striped table-hover table-bordered">
+                <table class="table table-striped table-hover table-bordered" style="margin-bottom: 0">
                     <tr>
                         <th style="min-width: 100px">键</th>
                         <th>值</th>
@@ -89,7 +90,18 @@
                     </tr>
                 </table>
                 <div>
-                    <div style="float:right;">个数：{{ cacheDataSize }}</div>
+                    <div style="float:right;">
+                        <nav aria-label="...">
+                            <ul class="pager">
+                                <li style="margin-right: 5px">页数: {{ page }}/{{ totalPage }}</li>
+                                <li style="margin-right: 5px">总数: {{ totalSize }}</li>
+                                <li :class="{'disabled':page <= 1}"><a href="javascript:void(0);" @click="firstPage">首页</a></li>
+                                <li :class="{'disabled':page <= 1}"><a href="javascript:void(0);" @click="prevPage">上一页</a></li>
+                                <li :class="{'disabled':page >= totalPage}"><a href="javascript:void(0);" @click="nextPage">下一页</a></li>
+                                <li :class="{'disabled':page >= totalPage}"><a href="javascript:void(0);" @click="lastPage">末页</a></li>
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
             </div>
         </div>
@@ -131,9 +143,7 @@
                     <h4 class="modal-title">{{ viewItemTitle }}</h4>
                 </div>
                 <div class="modal-body" v-html="viewItemContent"></div>
-<!--                <div class="modal-body" style="white-space: pre-wrap">-->
-<!--                    {{ viewItemContent }}-->
-<!--                </div>-->
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">确定</button>
                 </div>
@@ -169,6 +179,12 @@
             viewItemTitle: '',
             // 查看缓存值模态框内容
             viewItemContent: '',
+            // 分页
+            page: 0,
+            // 总页数
+            totalPage: 0,
+            // 总数量
+            totalSize: 0,
         },
         computed: {
             cacheDataSize: function () {
@@ -182,7 +198,11 @@
             // 选择分组
             selectGroup: function (group) {
                 this.currentGroup = group;
+                this.query = '';
                 this.cacheData = [];
+                this.page = 0;
+                this.totalPage = 0;
+                this.totalSize = 0;
             },
             // 加载分组列表
             loadGroups: function () {
@@ -200,15 +220,27 @@
                             if (!this.checkResponse(data)) return;
                             if (data.data === null || data.data === undefined) {
                                 this.cacheData = []
+                                this.page = 0;
+                                this.totalPage = 0;
+                                this.totalSize = 0;
                             } else {
                                 this.cacheData = [{key: query, value: data.data}];
+                                this.page = 1;
+                                this.totalPage = 1;
+                                this.totalSize = 1;
                             }
                         });
                 } else {
                     $.getJSON(PATH + '/group/' + this.currentGroup + '/list',
-                        {query: this.query, regex: this.queryRegex}, data => {
+                        {query: this.query, regex: this.queryRegex, page: this.page, size: 10},
+                        data => {
                             if (!this.checkResponse(data)) return;
-                            this.cacheData = data.data;
+                            this.cacheData = data.data.content;
+                            this.page = Math.max(Math.min(this.page, data.data.totalPages),
+                                this.cacheData.length === 0 ? 0 : 1);
+                            this.totalPage = data.data.totalPages;
+                            this.totalSize = data.data.totalElements;
+                            $(window).scrollTop(0);
                         });
                 }
             },
@@ -272,6 +304,34 @@
                     this.groupStatsModelData = data.data;
                     $('#groupStatsModal').modal('show');
                 });
+            },
+            // 上一页
+            prevPage: function () {
+                if (this.page > 1) {
+                    this.page--;
+                    this.search();
+                }
+            },
+            // 下一页
+            nextPage: function () {
+                if (this.page < this.totalPage) {
+                    this.page++;
+                    this.search();
+                }
+            },
+            // 首页
+            firstPage: function () {
+                if (this.page > 1) {
+                    this.page = 1;
+                    this.search();
+                }
+            },
+            // 末页
+            lastPage: function () {
+                if (this.page < this.totalPage) {
+                    this.page = this.totalPage;
+                    this.search();
+                }
             },
             checkResponse: function (data) {
                 console.log(data);

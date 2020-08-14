@@ -17,8 +17,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,12 +61,6 @@ public enum CacheGroupAction {
         public Response execute(String group, Cache<Object, Object> cache, HttpServletRequest request) {
             String query = request.getParameter(PARAM_QUERY);
             boolean regex = Boolean.parseBoolean(request.getParameter(PARAM_REGEX));
-            int page = getIntParam(request.getParameter(PARAM_PAGE))
-                    .map(it -> Math.max(it, 1))
-                    .orElse(1);
-            int size = getIntParam(request.getParameter(PARAM_SIZE))
-                    .map(it -> Math.max(it, 1))
-                    .orElse(DEFAULT_PAGE_SIZE);
 
             List<Item> result;
             if (StringUtils.isBlank(query)) {
@@ -78,10 +76,34 @@ public enum CacheGroupAction {
                 result = toList(map);
             }
 
-            // TODO 分页
-            
+            return Response.success(doPage(request, result));
+        }
 
-            return Response.success(result);
+        /**
+         * 执行分页
+         *
+         * @param request {@link HttpServletRequest}
+         * @param list 要分页的数据
+         * @return 分页结果
+         */
+        private Page<Item> doPage(HttpServletRequest request, List<Item> list) {
+            int page = getIntParam(request.getParameter(PARAM_PAGE))
+                    // 最小值
+                    .map(it -> Math.max(it - 1, 0))
+                    .orElse(0);
+            int size = getIntParam(request.getParameter(PARAM_SIZE))
+                    // 最小值
+                    .map(it -> Math.max(it, 1))
+                    // 最大值
+                    .map(it -> Math.min(it, MAX_PAGE_SIZE))
+                    .orElse(DEFAULT_PAGE_SIZE);
+            int offset = (page) * size;
+            PageRequest pageable = PageRequest.of(page, size);
+            if (offset >= list.size()) {
+                return new PageImpl<>(Collections.emptyList(), pageable, list.size());
+            }
+            return new PageImpl<>(list.subList(
+                    offset, Math.min(offset + size, list.size())), pageable, list.size());
         }
 
         private List<Item> toList(Map<?, ?> map) {
@@ -184,6 +206,9 @@ public enum CacheGroupAction {
     /** 默认分页大小 */
     private static final int DEFAULT_PAGE_SIZE = 50;
 
+    /** 最大分页大小 */
+    private static final int MAX_PAGE_SIZE = 1000;
+
     /** {@link #LIST}返回内容的最大长度 */
     private static final int MAX_VALUE_LENGTH = 200;
 
@@ -262,8 +287,8 @@ public enum CacheGroupAction {
                 .map(it -> {
                     try {
                         return Integer.parseInt(it);
-                    } catch (Exception e) {
-                        log.error(e.getMessage(), e);
+                    } catch (Exception ignored) {
+                        // 转换失败返回null
                     }
                     return null;
                 });
