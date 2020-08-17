@@ -81,6 +81,11 @@ public class RefreshByUpdateTimeService {
                         continue;
                     }
                     String group = split[0];
+
+                    if (!cacheManagerConfig.getGroupPropertiesMap().containsKey(group)) {
+                        continue;
+                    }
+
                     String key = MyStringUtils.kebabCaseToCamelCase(split[1]);
                     if ("refreshByUpdateTimeInterval".equals(key)) {
                         try {
