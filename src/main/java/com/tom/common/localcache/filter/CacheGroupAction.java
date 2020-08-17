@@ -61,32 +61,26 @@ public enum CacheGroupAction {
         public Response execute(String group, Cache<Object, Object> cache, HttpServletRequest request) {
             String query = request.getParameter(PARAM_QUERY);
             boolean regex = Boolean.parseBoolean(request.getParameter(PARAM_REGEX));
+            PageRequest pageable = getPageRequest(request);
 
-            List<Item> result;
+            Map<Object, Object> map;
             if (StringUtils.isBlank(query)) {
-                result = toList(cache.asMap());
+                map = cache.asMap();
             } else {
-                Map<Object, Object> map = new HashMap<>(cache.asMap());
+                map = new HashMap<>(cache.asMap());
                 if (regex) {
                     Predicate<String> predicate = Pattern.compile(query).asPredicate();
                     map.entrySet().removeIf(entry -> !predicate.test(String.valueOf(entry.getKey())));
                 } else {
                     map.entrySet().removeIf(entry -> !String.valueOf(entry.getKey()).contains(query));
                 }
-                result = toList(map);
             }
 
-            return Response.success(doPage(request, result));
+            List<Item> result = toList(map, pageable);
+            return Response.success(new PageImpl<>(result, pageable, map.size()));
         }
 
-        /**
-         * 执行分页
-         *
-         * @param request {@link HttpServletRequest}
-         * @param list 要分页的数据
-         * @return 分页结果
-         */
-        private Page<Item> doPage(HttpServletRequest request, List<Item> list) {
+        private PageRequest getPageRequest(HttpServletRequest request) {
             int page = getIntParam(request.getParameter(PARAM_PAGE))
                     // 最小值
                     .map(it -> Math.max(it - 1, 0))
@@ -97,18 +91,14 @@ public enum CacheGroupAction {
                     // 最大值
                     .map(it -> Math.min(it, MAX_PAGE_SIZE))
                     .orElse(DEFAULT_PAGE_SIZE);
-            int offset = (page) * size;
-            PageRequest pageable = PageRequest.of(page, size);
-            if (offset >= list.size()) {
-                return new PageImpl<>(Collections.emptyList(), pageable, list.size());
-            }
-            return new PageImpl<>(list.subList(
-                    offset, Math.min(offset + size, list.size())), pageable, list.size());
+            return PageRequest.of(page, size);
         }
 
-        private List<Item> toList(Map<?, ?> map) {
+        private List<Item> toList(Map<?, ?> map, PageRequest pageable) {
             ObjectMapper objectMapper = SpringContextUtils.getBean(ObjectMapper.class);
             return map.entrySet().stream()
+                    .skip(pageable.getOffset())
+                    .limit(pageable.getPageSize())
                     .map(entry -> new Item(entry.getKey(), formatMaxValue(objectMapper, entry.getValue())))
                     .collect(Collectors.toList());
         }
@@ -210,7 +200,7 @@ public enum CacheGroupAction {
     private static final int MAX_PAGE_SIZE = 1000;
 
     /** {@link #LIST}返回内容的最大长度 */
-    private static final int MAX_VALUE_LENGTH = 200;
+    private static final int MAX_VALUE_LENGTH = 170;
 
     /** {@link #LIST}超出最大长度后的后缀 */
     private static final String MAX_VALUE_END = "...";

@@ -21,6 +21,14 @@
         .item-value {
 
         }
+
+        #data-table th {
+            text-align: center;
+        }
+
+        #data-table td {
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -73,13 +81,15 @@
                         <button type="button" class="btn btn-danger" @click="clearGroup">清空此分组</button>
                     </div>
                 </form>
-                <table class="table table-striped table-hover table-bordered" style="margin-bottom: 0">
+                <table id="data-table" class="table table-striped table-hover table-bordered" style="margin-bottom: 0">
                     <tr>
+                        <th style="width: 60px">No.</th>
                         <th style="min-width: 100px">键</th>
                         <th>值</th>
-                        <th style="width: 140px;">操作</th>
+                        <th style="width: 140px">操作</th>
                     </tr>
-                    <tr v-for="item in cacheData">
+                    <tr v-for="(item, index) in cacheData">
+                        <td style="text-align: center">{{ (page - 1) * pageSize + index + 1 }}</td>
                         <td>{{ item.key }}</td>
                         <td class="item-value">{{ item.value }}</td>
                         <td style="text-align: center">
@@ -142,7 +152,7 @@
                             aria-hidden="true">&times;</span></button>
                     <h4 class="modal-title">{{ viewItemTitle }}</h4>
                 </div>
-                <div class="modal-body" v-html="viewItemContent"></div>
+                <div class="modal-body" style="word-break: break-all" v-html="viewItemContent"></div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">确定</button>
@@ -181,6 +191,8 @@
             viewItemContent: '',
             // 分页
             page: 0,
+            // 分页大小
+            pageSize: 10,
             // 总页数
             totalPage: 0,
             // 总数量
@@ -232,7 +244,7 @@
                         });
                 } else {
                     $.getJSON(PATH + '/group/' + this.currentGroup + '/list',
-                        {query: this.query, regex: this.queryRegex, page: this.page, size: 10},
+                        {query: this.query, regex: this.queryRegex, page: this.page, size: this.pageSize},
                         data => {
                             if (!this.checkResponse(data)) return;
                             this.cacheData = data.data.content;
