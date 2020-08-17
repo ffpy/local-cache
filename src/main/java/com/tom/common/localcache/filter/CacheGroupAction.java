@@ -63,11 +63,8 @@ public enum CacheGroupAction {
             boolean regex = Boolean.parseBoolean(request.getParameter(PARAM_REGEX));
             PageRequest pageable = getPageRequest(request);
 
-            Map<Object, Object> map;
-            if (StringUtils.isBlank(query)) {
-                map = cache.asMap();
-            } else {
-                map = new HashMap<>(cache.asMap());
+            Map<Object, Object> map = new HashMap<>(cache.asMap());
+            if (StringUtils.isNotBlank(query)) {
                 if (regex) {
                     Predicate<String> predicate = Pattern.compile(query).asPredicate();
                     map.entrySet().removeIf(entry -> !predicate.test(String.valueOf(entry.getKey())));
