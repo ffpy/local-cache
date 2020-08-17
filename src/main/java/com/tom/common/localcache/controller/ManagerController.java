@@ -22,6 +22,7 @@ public class ManagerController {
     @GetMapping
     public String index(Model model) {
         model.addAttribute("path", localCacheManagerProperties.getPath());
+        model.addAttribute("name", localCacheManagerProperties.getName());
         return "local-cache/index";
     }
 }

@@ -3,7 +3,9 @@ package com.tom.common.localcache.properties;
 import com.tom.common.localcache.constant.ConfigPrefix;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.Min;
 import java.util.Map;
 
 /**
@@ -11,6 +13,7 @@ import java.util.Map;
  */
 @Data
 @ConfigurationProperties(ConfigPrefix.ROOT)
+@Validated
 public class LocalCacheProperties {
 
     /** 全局配置是否启用缓存 */
@@ -20,6 +23,7 @@ public class LocalCacheProperties {
     private boolean debug;
 
     /** 定时任务线程池大小，如果值为0则不创建线程池 */
+    @Min(value = 0, message = "local-cache.schedule-pool-size不能小于0")
     private int schedulePoolSize = 4;
 
     /** 缓存分组配置 */
