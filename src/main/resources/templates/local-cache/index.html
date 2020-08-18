@@ -225,8 +225,15 @@
                     this.groups = data.data;
                 });
             },
-            // 搜索分组键
+            // 点击搜索按钮
             search: function () {
+                this.page = 0;
+                this.totalPage = 0;
+                this.totalSize = 0;
+                this.doSearch();
+            },
+            // 搜索分组键
+            doSearch: function () {
                 if (this.queryAccurate && this.query !== '') {
                     const query = this.query;
                     $.getJSON(PATH + '/group/' + this.currentGroup + '/get',
@@ -263,7 +270,7 @@
                 if (confirm('是否确认重新加载' + this.currentGroup + '分组的数据?')) {
                     $.getJSON(PATH + '/group' + this.currentGroup + '/reload-all', data => {
                         if (!this.checkResponse(data)) return;
-                        this.search();
+                        this.doSearch();
                     });
                 }
             },
@@ -307,7 +314,7 @@
             refreshItem: function (key) {
                 $.getJSON(PATH + '/group' + this.currentGroup + '/refresh?key=' + key, data => {
                     if (!this.checkResponse(data)) return;
-                    setTimeout(() => this.search(), 100);
+                    setTimeout(() => this.doSearch(), 100);
                 });
             },
             // 显示分组统计信息
@@ -323,28 +330,28 @@
             prevPage: function () {
                 if (this.page > 1) {
                     this.page--;
-                    this.search();
+                    this.doSearch();
                 }
             },
             // 下一页
             nextPage: function () {
                 if (this.page < this.totalPage) {
                     this.page++;
-                    this.search();
+                    this.doSearch();
                 }
             },
             // 首页
             firstPage: function () {
                 if (this.page > 1) {
                     this.page = 1;
-                    this.search();
+                    this.doSearch();
                 }
             },
             // 末页
             lastPage: function () {
                 if (this.page < this.totalPage) {
                     this.page = this.totalPage;
-                    this.search();
+                    this.doSearch();
                 }
             },
             checkResponse: function (data) {

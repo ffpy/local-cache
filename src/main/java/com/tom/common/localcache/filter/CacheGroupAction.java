@@ -17,12 +17,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,18 +62,19 @@ public enum CacheGroupAction {
             boolean regex = Boolean.parseBoolean(request.getParameter(PARAM_REGEX));
             PageRequest pageable = getPageRequest(request);
 
-            Map<Object, Object> map = new HashMap<>(cache.asMap());
+
+            ArrayList<Map.Entry<Object, Object>> list = new ArrayList<>(cache.asMap().entrySet());
             if (StringUtils.isNotBlank(query)) {
                 if (regex) {
                     Predicate<String> predicate = Pattern.compile(query).asPredicate();
-                    map.entrySet().removeIf(entry -> !predicate.test(String.valueOf(entry.getKey())));
+                    list.removeIf(entry -> !predicate.test(String.valueOf(entry.getKey())));
                 } else {
-                    map.entrySet().removeIf(entry -> !String.valueOf(entry.getKey()).contains(query));
+                    list.removeIf(entry -> !String.valueOf(entry.getKey()).contains(query));
                 }
             }
 
-            List<Item> result = toList(map, pageable);
-            return Response.success(new PageImpl<>(result, pageable, map.size()));
+            List<Item> result = doPage(list, pageable);
+            return Response.success(new PageImpl<>(result, pageable, list.size()));
         }
 
         private PageRequest getPageRequest(HttpServletRequest request) {
@@ -91,11 +91,12 @@ public enum CacheGroupAction {
             return PageRequest.of(page, size);
         }
 
-        private List<Item> toList(Map<?, ?> map, PageRequest pageable) {
+        private List<Item> doPage(List<Map.Entry<Object, Object>> list, PageRequest pageable) {
             ObjectMapper objectMapper = SpringContextUtils.getBean(ObjectMapper.class);
-            return map.entrySet().stream()
-                    .skip(pageable.getOffset())
-                    .limit(pageable.getPageSize())
+            int fromIndex = Math.min((int) pageable.getOffset(), list.size());
+            int toIndex = Math.min((int) pageable.getOffset() + pageable.getPageSize(), list.size());
+            return list.subList(fromIndex, toIndex)
+                    .stream()
                     .map(entry -> new Item(entry.getKey(), formatMaxValue(objectMapper, entry.getValue())))
                     .collect(Collectors.toList());
         }
