@@ -9,7 +9,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 
 /**
  * 本地缓存管理接口配置
@@ -28,7 +27,6 @@ public class LocalCacheManagerProperties {
     private boolean enable = true;
 
     /** 管理接口路径 */
-    // TODO 无效
     @NotBlank(message = "local-cache.manager.path不能为空")
     private String path = PathConstant.DEFAULT_PATH;
 
@@ -36,7 +34,7 @@ public class LocalCacheManagerProperties {
     private String name;
 
     public void setPath(String path) {
-        if (!path.startsWith("/")) {
+        if (!path.isEmpty() && !path.startsWith("/")) {
             path = "/" + path;
         }
         this.path = path;
