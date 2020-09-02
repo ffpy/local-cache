@@ -2,9 +2,6 @@ package com.tom.common.localcache.service;
 
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.tom.common.localcache.bean.User2;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -25,9 +22,8 @@ public class User2CacheLoader implements CacheLoader<String, User2> {
         return loadCounter;
     }
 
-    @Nullable
     @Override
-    public User2 load(@NonNull String username) throws Exception {
+    public User2 load(String username) throws Exception {
         loadCounter.compute(username, (key, value) -> {
             if (value == null) {
                 return 1;

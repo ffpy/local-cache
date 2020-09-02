@@ -136,7 +136,7 @@ public class LocalCacheManagerImpl implements LocalCacheManager, InitializingBea
             throw new IllegalArgumentException("找不到同名缓存: " + group);
         }
 
-        // TODO 要不要加上同步，防止观察到不一致的状态
+        // 要不要加上同步，防止观察到不一致的状态
         cacheMap.put(group, (com.github.benmanes.caffeine.cache.Cache<Object, Object>) newCache);
         cacheManager.setCaches(getCacheList());
         cacheManager.initializeCaches();

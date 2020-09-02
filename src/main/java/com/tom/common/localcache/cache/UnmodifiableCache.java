@@ -5,7 +5,6 @@ import com.github.benmanes.caffeine.cache.Policy;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,13 +23,11 @@ public class UnmodifiableCache<K, V> implements Cache<K, V> {
     @NonNull
     private final Cache<K, V> cache;
 
-    @Nullable
     @Override
     public V getIfPresent(Object key) {
         return cache.getIfPresent(key);
     }
 
-    @Nullable
     @Override
     public V get(K key, Function<? super K, ? extends V> mappingFunction) {
         return cache.get(key, mappingFunction);
