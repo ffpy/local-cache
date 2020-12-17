@@ -1,9 +1,7 @@
 package com.tom.common.localcache.bean;
 
 import lombok.Data;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
 
 import java.time.LocalDateTime;
 import java.util.Objects;

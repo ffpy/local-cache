@@ -5,14 +5,10 @@ import com.tom.common.localcache.action.RefreshByUpdateTimeAction;
 import com.tom.common.localcache.cache.TimeValue;
 import com.tom.common.localcache.cache.UnmodifiableCache;
 import com.tom.common.localcache.config.LocalCacheManagerConfig;
-import com.tom.common.localcache.constant.ConfigPrefix;
-import com.tom.common.localcache.helper.NacosConfigHelper;
 import com.tom.common.localcache.manager.LocalCacheManager;
-import com.tom.common.localcache.util.MyStringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +17,6 @@ import javax.annotation.PreDestroy;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -30,7 +25,6 @@ import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
 @Service
-@ConditionalOnBean(NacosConfigHelper.class)
 public class RefreshByUpdateTimeService {
 
     private static final ZoneId ZONE_ID = ZoneId.systemDefault();
@@ -40,9 +34,6 @@ public class RefreshByUpdateTimeService {
 
     @Autowired
     private LocalCacheManager cacheManager;
-
-    @Autowired
-    private NacosConfigHelper nacosConfigHelper;
 
     @Autowired
     private LocalCacheManagerConfig cacheManagerConfig;
@@ -67,48 +58,6 @@ public class RefreshByUpdateTimeService {
                 actionMap.put(group, action);
 
                 startGroupRefresh(group);
-            }
-        });
-
-        nacosConfigHelper.addChangedListener((oldProp, prop) -> {
-            Enumeration<Object> names = prop.keys();
-            while (names.hasMoreElements()) {
-                String name = (String) names.nextElement();
-                if (name.startsWith(ConfigPrefix.GROUP)) {
-                    String str = name.substring(ConfigPrefix.GROUP.length());
-                    String[] split = StringUtils.split(str, '.');
-                    if (split == null || split.length != 2) {
-                        continue;
-                    }
-                    String group = split[0];
-
-                    if (!cacheManagerConfig.getGroupPropertiesMap().containsKey(group)) {
-                        continue;
-                    }
-
-                    String key = MyStringUtils.kebabCaseToCamelCase(split[1]);
-                    if ("refreshByUpdateTimeInterval".equals(key)) {
-                        try {
-                            Object intervalValue = prop.get(name);
-                            if (intervalValue == null) {
-                                continue;
-                            }
-                            TimeValue interval = TimeValue.parse(String.valueOf(intervalValue));
-                            if (interval.getValue() > 0) {
-                                TimeValue oldInterval = refreshIntervalMap.get(group);
-                                if (!Objects.equals(oldInterval, interval)) {
-                                    log.info("update {}={}", name, interval);
-                                    refreshIntervalMap.put(group, interval);
-                                    startGroupRefresh(group);
-                                }
-                            } else {
-                                log.error("属性{}必须大于0", name);
-                            }
-                        } catch (NumberFormatException e) {
-                            log.error("属性" + name + "格式不正确", e);
-                        }
-                    }
-                }
             }
         });
     }
