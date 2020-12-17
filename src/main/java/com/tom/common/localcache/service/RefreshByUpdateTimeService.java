@@ -118,6 +118,7 @@ public class RefreshByUpdateTimeService {
         executorMap.forEach((k, v) -> v.shutdownNow());
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void startGroupRefresh(String group) {
         ScheduledExecutorService executor = getNewExecutor(group);
         RefreshByUpdateTimeAction<?, ?> action = Objects.requireNonNull(actionMap.get(group));
@@ -125,22 +126,26 @@ public class RefreshByUpdateTimeService {
 
         int intervalValue = Math.max(interval.getValue(), 1);
         executor.scheduleAtFixedRate(() -> {
-            log.info("{} refresh by update time start", group);
-            // +1用于防止因定时任务的延时而导致有数据没有扫描到
-            Date timeBound = Date.from(LocalDateTime.now().minusMinutes(
-                    interval.getUnit().toMinutes(interval.getValue()) + 1)
-                    .atZone(ZONE_ID).toInstant());
-            Cache<Object, Object> cache = cacheManager.getCaffeineCache(group);
-            //noinspection unchecked,rawtypes
-            Map<?, ?> data = action.load(timeBound, new UnmodifiableCache(cache));
-            data.forEach((k, v) -> {
-                if (v == null) {
-                    cache.invalidate(k);
-                } else {
-                    cache.put(k, v);
-                }
-            });
-            log.info("{} refresh by update time end, size: {}", group, data.size());
+            try {
+                log.info("{} refresh by update time start", group);
+                // +5用于防止因定时任务的延时而导致有数据没有扫描到
+                Date timeBound = Date.from(LocalDateTime.now().minusMinutes(
+                        interval.getUnit().toMinutes(interval.getValue()) + 5)
+                        .atZone(ZONE_ID).toInstant());
+                Cache<Object, Object> cache = cacheManager.getCaffeineCache(group);
+                Map<?, ?> data = action.load(timeBound, new UnmodifiableCache(cache));
+                data.forEach((k, v) -> {
+                    if (v == null) {
+                        cache.invalidate(k);
+                    } else {
+                        cache.put(k, v);
+                    }
+                    log.info("{} refresh: {} => {}", group, k, v);
+                });
+                log.info("{} refresh by update time end, size: {}", group, data.size());
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
         }, intervalValue, intervalValue, interval.getUnit());
     }
 
