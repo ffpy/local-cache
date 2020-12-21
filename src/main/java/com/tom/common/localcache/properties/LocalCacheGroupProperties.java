@@ -18,7 +18,7 @@ import lombok.ToString;
 public class LocalCacheGroupProperties {
 
     /** 是否启用缓存 */
-    private boolean enable;
+    private boolean enable = true;
 
     /** 是否开启调试模式，设为true则每次都会请求数据，不会存在缓存中 */
     private boolean debug;
