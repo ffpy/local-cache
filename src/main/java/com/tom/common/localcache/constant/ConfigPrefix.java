@@ -2,9 +2,6 @@ package com.tom.common.localcache.constant;
 
 /**
  * 配置项前缀
- *
- * @author 温龙盛
- * @date 2020/7/29 15:55
  */
 public class ConfigPrefix {
 

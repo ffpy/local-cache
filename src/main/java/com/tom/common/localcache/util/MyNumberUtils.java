@@ -4,9 +4,6 @@ import java.text.DecimalFormat;
 
 /**
  * 数字工具类
- *
- * @author 温龙盛
- * @date 2020/7/16 18:15
  */
 public class MyNumberUtils {
 

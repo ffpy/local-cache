@@ -9,10 +9,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * @author 温龙盛
- * @date 2020/7/30 14:35
- */
 @Controller
 @RequestMapping("${local-cache.manager.path:" + PathConstant.DEFAULT_PATH + "}")
 public class ManagerController {

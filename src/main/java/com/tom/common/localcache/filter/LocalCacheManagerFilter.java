@@ -29,9 +29,6 @@ import java.util.Map;
 
 /**
  * 本地缓存管理接口过滤器，用于提供管理接口
- *
- * @author 温龙盛
- * @date 2020-07-29 13:57
  */
 @Slf4j
 @Component

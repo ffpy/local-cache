@@ -13,9 +13,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 测试用中划线属性名是否生效
- *
- * @author 温龙盛
- * @date 2020-07-30 10:10
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {

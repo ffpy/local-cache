@@ -4,9 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * 字符串处理工具类
- *
- * @author 温龙盛
- * @date 2020/7/30 9:14
  */
 public class MyStringUtils {
 

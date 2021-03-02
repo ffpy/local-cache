@@ -4,10 +4,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
-/**
- * @author 温龙盛
- * @date 2020/7/31 13:48
- */
 @Getter
 @RequiredArgsConstructor
 @ToString

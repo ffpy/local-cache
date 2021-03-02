@@ -9,9 +9,6 @@ import org.springframework.context.ApplicationContext;
 
 /**
  * 缓存工厂
- *
- * @author 温龙盛
- * @date 2020/7/29 17:23
  */
 public class CacheFactory {
 

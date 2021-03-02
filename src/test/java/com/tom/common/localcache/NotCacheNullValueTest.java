@@ -11,9 +11,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * 测试设置缓存空值是否生效
- *
- * @author 温龙盛
- * @date 2020/7/30 10:10
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {

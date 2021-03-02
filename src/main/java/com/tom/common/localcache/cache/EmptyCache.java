@@ -10,9 +10,6 @@ import java.util.function.Function;
 
 /**
  * 不存入缓存的缓存实现，主要是用于测试
- *
- * @author 温龙盛
- * @date 2020/7/29 16:30
  */
 public class EmptyCache implements Cache<Object, Object> {
 

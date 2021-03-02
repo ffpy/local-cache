@@ -11,10 +11,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
-/**
- * @author 温龙盛
- * @date 2020/8/6 9:23
- */
 @Service
 public class ReloadService implements ApplicationContextAware {
 

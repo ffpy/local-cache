@@ -8,9 +8,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * 全局分组属性配置
- *
- * @author 温龙盛
- * @date 2020/7/29 9:28
  */
 @Getter
 @Setter

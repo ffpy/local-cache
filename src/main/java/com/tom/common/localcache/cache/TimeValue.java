@@ -26,9 +26,6 @@ import java.util.regex.Pattern;
  * m: {@link TimeUnit#MINUTES}
  * h: {@link TimeUnit#HOURS}
  * d: {@link TimeUnit#DAYS}
- *
- * @author 温龙盛
- * @date 2020/7/29 9:28
  */
 @Getter
 @Setter

@@ -6,10 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
-/**
- * @author 温龙盛
- * @date 2020/8/5 16:49
- */
 @Slf4j
 public class ReloadAllRunnable implements Runnable {
     private final LocalCacheManager cacheManager;

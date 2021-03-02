@@ -7,9 +7,6 @@ import java.util.Objects;
 
 /**
  * 用于测试OOM的用户类
- *
- * @author 温龙盛
- * @date 2020/7/29 18:26
  */
 @Data
 public class BigUser {

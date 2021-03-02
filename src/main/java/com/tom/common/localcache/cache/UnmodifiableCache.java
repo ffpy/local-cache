@@ -13,9 +13,6 @@ import java.util.function.Function;
 
 /**
  * 不可修改的Cache
- *
- * @author 温龙盛
- * @date 2020/8/6 16:04
  */
 @RequiredArgsConstructor
 public class UnmodifiableCache<K, V> implements Cache<K, V> {

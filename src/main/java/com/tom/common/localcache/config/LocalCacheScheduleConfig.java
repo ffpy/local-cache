@@ -17,9 +17,6 @@ import java.util.concurrent.Executors;
 
 /**
  * 定时任务配置
- *
- * @author 温龙盛
- * @date 2020/7/30 16:54
  */
 @Slf4j
 @Configuration

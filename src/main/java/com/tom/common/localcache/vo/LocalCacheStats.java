@@ -11,9 +11,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 本地缓存统计信息
- *
- * @author 温龙盛
- * @date 2020/7/16 17:23
  */
 @Getter
 @Setter

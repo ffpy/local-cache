@@ -7,10 +7,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-/**
- * @author 温龙盛
- * @date 2020/8/6 9:39
- */
 public class ObjectUtils {
 
     /**

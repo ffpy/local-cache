@@ -8,9 +8,6 @@ import lombok.ToString;
  * 缓存分组属性配置
  * <p>
  * 注意，如果修改字段，要看要不要修改{@link LocalCacheGlobalGroupProperties}中的字段
- *
- * @author 温龙盛
- * @date 2020/7/29 9:28
  */
 @Getter
 @Setter

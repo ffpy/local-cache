@@ -7,10 +7,6 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author 温龙盛
- * @date 2020/7/31 13:23
- */
 @Component
 public class User1ReloadAction implements ReloadAction<String, User1> {
 

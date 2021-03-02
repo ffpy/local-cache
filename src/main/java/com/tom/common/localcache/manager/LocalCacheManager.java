@@ -8,9 +8,6 @@ import java.util.Map;
 
 /**
  * 本地缓存管理器
- *
- * @author 温龙盛
- * @date 2020/7/29 17:17
  */
 public interface LocalCacheManager extends CacheManager {
 

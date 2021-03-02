@@ -11,9 +11,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * 测试禁用缓存功能是否有效
- *
- * @author 温龙盛
- * @date 2020/7/29 18:54
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {

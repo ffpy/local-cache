@@ -12,9 +12,6 @@ import javax.validation.constraints.NotBlank;
 
 /**
  * 本地缓存管理接口配置
- *
- * @author 温龙盛
- * @date 2020/7/29 17:36
  */
 @Getter
 @Setter
