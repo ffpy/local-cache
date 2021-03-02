@@ -43,5 +43,25 @@ public class MyStringUtils {
         }
         return sb.toString();
     }
+
+    /**
+     * 空串转为null，否则原样返回
+     *
+     * @param s 字符串
+     * @return 结果
+     */
+    public static String emptyToNull(String s) {
+        return s == null || s.isEmpty() ? null : s;
+    }
+
+    /**
+     * null转为空串，否则原样返回
+     *
+     * @param s 字符串
+     * @return 结果
+     */
+    public static String nullToEmpty(String s) {
+        return s == null || s.isEmpty() ? "" : s;
+    }
 }
 
