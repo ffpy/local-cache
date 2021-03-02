@@ -59,7 +59,7 @@
                     <li role="presentation"><a href="#" @click="selectGroup('')">请选择分组</a>
                     </li>
                     <li role="presentation" :class="{active:currentGroup == k}" v-for="(v, k) in groups" :key="k"><a
-                            href="#" @click="selectGroup(k)">{{ k }}({{ v.desc }})</a></li>
+                            href="#" @click="selectGroup(k)" style="word-break: break-all">{{ k }}({{ v.desc }})</a></li>
                 </ul>
             </div>
             <div class="col-md-10" v-show="currentGroup != ''">
